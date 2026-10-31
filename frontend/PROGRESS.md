@@ -46,8 +46,17 @@
 - Maintained plain text rendering for all incident text to protect against injection/XSS.
 - Wrapped modals with accessible `aria-modal="true"` dialog semantics and backdrop dismiss for smooth UX.
 
+### Step 5: Landing Page (/) ✅
+- Built public landing page in `src/app/page.tsx` featuring hero section, civic action CTAs, and a report number tracking lookup.
+- Implemented public feed fetching from `GET /incidents/public/resolved` with pagination / load-more handling, loading spinner, and empty/error states.
+- Implemented `IncidentMap.tsx` using `react-leaflet` with OpenStreetMap tiles, custom Leaflet SVG pin markers color-coded by category, popups, and auto-centering. Dynamically imported with `ssr: false` to ensure zero hydration issues.
+- Integrated quick incident detail modal for public inspections and tracking.
+
+#### Decisions
+- Used Leaflet `L.divIcon` with custom Tailwind HTML markup instead of default image assets to prevent broken Leaflet icon URLs and improve visual style.
+- Included both Feed List and City Map toggles so users can choose between card view and spatial map view.
+
 ## Pending Steps
-- [ ] Step 5: Landing page (/)
 - [ ] Step 6: Citizen report flow (/report)
 - [ ] Step 7: Citizen My Reports (/my-reports)
 - [ ] Step 8: Admin dashboard (/admin)
