@@ -7,6 +7,9 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { getDatabaseConfig } from './config/database.config';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { MediaModule } from './modules/media/media.module';
+import { IncidentsModule } from './modules/incidents/incidents.module';
 
 @Module({
   imports: [
@@ -27,6 +30,9 @@ import { UsersModule } from './modules/users/users.module';
     ]),
     AuthModule,
     UsersModule,
+    NotificationsModule,
+    MediaModule,
+    IncidentsModule,
   ],
   providers: [
     {

@@ -48,9 +48,25 @@
 - Public registration only permits `CITIZEN` role (defaulting to CITIZEN if omitted, and rejecting other roles with 400).
 - Users endpoint filters specifically for staff roles (AGENT, TECHNICIAN) and requires ADMIN role.
 
+### Step 4: Incidents module ✅
+- `POST /api/v1/incidents`: Submits new incident report with status `RECEIVED`, priority `MEDIUM`, auto-increment `reportNumber`. Automatically checks street incident density (>10 incidents on same street) and triggers notifications service fail-safely.
+- `GET /api/v1/incidents`: Filterable (status, category, streetAddress) and paginated query for ADMIN and AGENT.
+- `GET /api/v1/incidents/my`: Returns incidents created by calling citizen.
+- `GET /api/v1/incidents/assigned`: Returns incidents assigned to caller (agent or technician).
+- `GET /api/v1/incidents/public/resolved`: Public paginated endpoint returning sanitized fields without reporter/user details.
+- `GET /api/v1/incidents/:id`: Returns full details including notes and photos with pre-signed GET URLs. Enforces ownership: citizens can only read their own incidents, agents/technicians only assigned incidents, admins all.
+- `PATCH /api/v1/incidents/:id/assign-agent` (ADMIN): Validates agent existence and transitions status `RECEIVED -> PENDING_VALIDATION`.
+- `PATCH /api/v1/incidents/:id/validate` (AGENT): Validates status `PENDING_VALIDATION`, verifies caller assignment, updates status to `VALIDATED` or `REJECTED`, sets priority, and creates an audit `IncidentNote`.
+- `PATCH /api/v1/incidents/:id/assign-technician` (ADMIN): Validates technician existence and transitions status `VALIDATED -> ASSIGNED`.
+- `PATCH /api/v1/incidents/:id/progress` (TECHNICIAN): Enforces status transitions `ASSIGNED -> IN_PROGRESS -> RESOLVED`, verifies caller assignment, and creates an audit `IncidentNote`.
+- Unit tests: Added 15 unit tests covering every status transition, invalid transition rejections (400), and RBAC ownership rejections (403). Total tests: 24 passed.
+
+#### Decisions
+- Non-matching status transitions throw `BadRequestException` with descriptive error messages.
+- Audit `IncidentNote` records are automatically written whenever an incident is validated or progress is updated.
+
 ## Pending Steps
 
-- [ ] Step 4: Incidents module
 - [ ] Step 5: Media module
 - [ ] Step 6: Notifications (SNS)
 - [ ] Step 7: Health module
