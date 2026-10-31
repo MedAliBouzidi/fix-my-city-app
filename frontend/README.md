@@ -70,7 +70,7 @@ Create a `.env.local` file in the project root directory:
 
 ```env
 # URL of the backend API (NestJS)
-NEXT_PUBLIC_API_URL=localhost:4000/api/v1
+NEXT_PUBLIC_API_URL=http://localhost:4000/api/v1
 
 # Frontend Port
 PORT=3000

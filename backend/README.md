@@ -69,13 +69,13 @@ NODE_ENV=production
 DATABASE_HOST=localhost
 DATABASE_PORT=3306
 DATABASE_USER=appuser
-DATABASE_PASSWORD=SuperSecurePassword123
+DATABASE_PASSWORD=Password123
 DATABASE_NAME=fixmycity
 DATABASE_SYNCHRONIZE=false
 DATABASE_LOGGING=false
 
 # Authentication
-JWT_SECRET=production-secret-token-do-not-share
+JWT_SECRET="XKcxu/popChVPyYhZ2vYfwH43ppVQglyoUCyJuTQnT0="
 JWT_EXPIRATION=86400s
 
 # AWS Integration (Picked up via IAM LabRole in EC2)
