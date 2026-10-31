@@ -36,8 +36,17 @@
 - Automatically logged user in upon citizen registration to streamline onboarding straight to `/my-reports`.
 - Staff accounts are restricted from public registration, reinforced by descriptive UI notes and backend RBAC.
 
+### Step 4: Shared Components ✅
+- Implemented accessible, semantic badge components: `StatusBadge.tsx` (using status classes and labels) and `PriorityBadge.tsx` (with priority icons and styling).
+- Implemented `IncidentCard.tsx` with photo preview, report number tag, responsive layout, and action slot.
+- Implemented reusable feedback components: `Spinner.tsx` (custom sizes), `EmptyState.tsx` (with icon and action trigger), `ErrorState.tsx` (with retry handler), `Modal.tsx` (accessible dialog with escape/backdrop dismiss and body scroll prevention), and `Toast.tsx` (with auto-dismissing toast notifications and `useToast` hook).
+- Integrated `ToastProvider` into root layout.
+
+#### Decisions
+- Maintained plain text rendering for all incident text to protect against injection/XSS.
+- Wrapped modals with accessible `aria-modal="true"` dialog semantics and backdrop dismiss for smooth UX.
+
 ## Pending Steps
-- [ ] Step 4: Shared components
 - [ ] Step 5: Landing page (/)
 - [ ] Step 6: Citizen report flow (/report)
 - [ ] Step 7: Citizen My Reports (/my-reports)
