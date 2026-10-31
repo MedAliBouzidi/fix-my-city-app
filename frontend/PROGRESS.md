@@ -88,8 +88,18 @@
 - Embedded `<Suspense>` wrapper around admin search query params to fulfill Next.js App Router static compilation guidelines.
 - Filtered staff dropdowns dynamically by role (`AGENT` vs `TECHNICIAN`) using `usersApi.getStaff()`.
 
+### Step 9: Field Portal (/field) ✅
+- Built mobile-optimized field portal in `src/app/field/page.tsx` protected by `RouteGuard` for AGENT, TECHNICIAN, and ADMIN.
+- Mobile-first layout with high-contrast touch targets, external GPS navigation shortcuts, and citizen photo evidence inspection.
+- Agent Role Actions: inspection review, priority assignment (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`), inspection notes log, and decision buttons calling `PATCH /incidents/:id/validate` with `isValid: true` (validated) or `isValid: false` (rejected).
+- Technician Role Actions: "Start Repair Work" transition to `IN_PROGRESS`, and "Certify Repairs Complete" transition to `RESOLVED` with mandatory progress notes and optional completion photo attachment via S3 pre-signed upload.
+- Admin view mode toggle allowing supervisors to test and inspect both Agent and Technician field interfaces.
+
+#### Decisions
+- Added Google Maps one-tap navigation links using latitude and longitude coordinates for field workers on smartphones.
+- Permitted technicians to optionally attach a repair completion photo when transitioning an incident to `RESOLVED`.
+
 ## Pending Steps
-- [ ] Step 9: Field portal (/field)
 - [ ] Step 10: Docker
 - [ ] Step 11: Tests
 - [ ] Step 4: Shared components
