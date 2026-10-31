@@ -24,8 +24,19 @@
 - Capped photo uploads at 5MB in validation to match backend S3 max limit.
 - Provided fallback URL `http://localhost:4000/api/v1` when `NEXT_PUBLIC_API_URL` is omitted.
 
+### Step 3: Auth and Layout ✅
+- Implemented `AuthProvider` context in `src/context/AuthContext.tsx` with `user`, `token`, `loading`, `login`, `register`, `logout`, and role-based redirect resolution.
+- Created `RouteGuard` client component in `src/components/RouteGuard.tsx` ensuring unauthenticated requests redirect to `/login` and users accessing prohibited views redirect to their authorized portal.
+- Implemented responsive, role-aware `Navbar` in `src/components/Navbar.tsx` featuring dynamic links based on user role (Citizen, Admin, Agent, Technician), mobile navigation drawer, and user session badge with logout.
+- Configured root layout in `src/app/layout.tsx` wrapping the application with `AuthProvider` and standard header/footer.
+- Created citizen and staff `/login` page with Zod validation, credential error handling, expired session alerts, and auto-redirect.
+- Created `/register` page strictly creating CITIZEN accounts with real-time password complexity checklist and conflict resolution.
+
+#### Decisions
+- Automatically logged user in upon citizen registration to streamline onboarding straight to `/my-reports`.
+- Staff accounts are restricted from public registration, reinforced by descriptive UI notes and backend RBAC.
+
 ## Pending Steps
-- [ ] Step 3: Auth and layout
 - [ ] Step 4: Shared components
 - [ ] Step 5: Landing page (/)
 - [ ] Step 6: Citizen report flow (/report)

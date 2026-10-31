@@ -3,10 +3,12 @@ import { Role, UserSummary } from '../types/user';
 const TOKEN_KEY = 'fixmycity_token';
 const USER_KEY = 'fixmycity_user';
 
-interface JwtPayload {
+export interface JwtPayload {
   sub: string;
   email: string;
   role: Role;
+  firstName?: string;
+  lastName?: string;
   exp?: number;
   iat?: number;
 }
@@ -114,6 +116,27 @@ export function decodeToken(token: string): JwtPayload | null {
     return parsed;
   } catch {
     return null;
+  }
+}
+
+export function isTokenExpired(token: string): boolean {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return true;
+    const base64Url = parts[1];
+    if (!base64Url) return true;
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join(''),
+    );
+    const parsed: JwtPayload = JSON.parse(jsonPayload);
+    if (!parsed.exp) return false;
+    return parsed.exp * 1000 < Date.now();
+  } catch {
+    return true;
   }
 }
 
