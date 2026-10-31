@@ -65,9 +65,18 @@
 - Non-matching status transitions throw `BadRequestException` with descriptive error messages.
 - Audit `IncidentNote` records are automatically written whenever an incident is validated or progress is updated.
 
+### Step 5: Media module ✅
+- `POST /api/v1/media/presigned-upload-url`: Generates S3 pre-signed PUT upload URL with target key `incidents/${incidentId}/${uuid}.${ext}`. Validates content type (png, jpg, jpeg) and enforces incident existence and caller ownership.
+- `POST /api/v1/media/confirm-upload`: Confirms direct upload completion and writes metadata (`IncidentPhoto`) to MySQL. Validates max file size limit (5 MB), mimeType, and namespace security check.
+- `S3Service`: Implemented with AWS SDK v3 (`@aws-sdk/client-s3` and `@aws-sdk/s3-request-presigner`) supporting pre-signed upload URLs, pre-signed download URLs, and head-bucket reachability check.
+- Unit tests: Added 5 unit tests for media generation, authorization checks, and validation (total 29 tests passing).
+
+#### Decisions
+- Maximum photo upload size enforced at 5 MB (5,242,880 bytes).
+- Upload s3Key enforced to stay strictly within target incident namespace (`incidents/${incidentId}/`).
+
 ## Pending Steps
 
-- [ ] Step 5: Media module
 - [ ] Step 6: Notifications (SNS)
 - [ ] Step 7: Health module
 - [ ] Step 8: Dockerfile + docker-compose
