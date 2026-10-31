@@ -95,9 +95,20 @@
 #### Decisions
 - Simulated failure mode operates in-memory for testing resilience without modifying persistent database state.
 
+### Step 8: Dockerfile + docker-compose ✅
+- `Dockerfile`: Multi-stage build (Node 20 Alpine builder & runner stages).
+  - Alpine build dependencies (`python3`, `make`, `g++`) for native addons.
+  - Dedicated non-root user `nestjs:nodejs` (UID 1001).
+  - Health check configured on `http://localhost:4000/api/v1/health`.
+- `docker-compose.yml`: Defines local development orchestration for `backend` and `mysql` 8.0 with health checks and dedicated bridge network.
+- Tested and verified image compilation with container runtime.
+
+#### Decisions
+- Non-root user ownership on `/app/dist` for security hardening.
+- Production stage isolates runtime dependencies by running `npm ci --only=production`.
+
 ## Pending Steps
 
-- [ ] Step 8: Dockerfile + docker-compose
 - [ ] Step 9: Tests
 
 ## Open Questions

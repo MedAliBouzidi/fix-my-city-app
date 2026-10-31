@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fixmycity-backend
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - NODE_ENV=production
+      - DATABASE_HOST=mysql
+      - DATABASE_PORT=3306
+      - DATABASE_USER=appuser
+      - DATABASE_PASSWORD=Password123
+      - DATABASE_NAME=fixmycity
+      - DATABASE_SYNCHRONIZE=false
+      - DATABASE_LOGGING=false
+      - JWT_SECRET=XKcxu/popChVPyYhZ2vYfwH43ppVQglyoUCyJuTQnT0=
+      - JWT_EXPIRATION=86400s
+      - AWS_REGION=us-east-1
+      - AWS_S3_BUCKET_NAME=fixmycity-media-storage-production
+      - AWS_SNS_TOPIC_ARN=
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - fixmycity-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: fixmycity-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: fixmycity
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: Password123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpass"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - fixmycity-network
+
+networks:
+  fixmycity-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
