@@ -77,8 +77,18 @@
 #### Decisions
 - Displayed visual status progression directly on report inspection modals, showing clear rejection states or certified completion milestones.
 
+### Step 8: Admin Dashboard (/admin) ✅
+- Implemented `/admin` operations dashboard in `src/app/admin/page.tsx` protected by `RouteGuard` for ADMIN.
+- Integrated query parameter URL state synchronization for `status`, `category`, `streetAddress`, and `page`.
+- Added high-density street warning banner detecting streets with >10 incident reports to highlight municipal clusters.
+- Implemented operational dispatch modals: "Assign Agent" (for `RECEIVED` incidents, populating AGENT staff) and "Assign Technician" (for `VALIDATED` incidents, populating TECHNICIAN staff).
+- Guarded dispatch buttons by status and provided detailed inspection modal with photographic records, coordinates, and notes log.
+
+#### Decisions
+- Embedded `<Suspense>` wrapper around admin search query params to fulfill Next.js App Router static compilation guidelines.
+- Filtered staff dropdowns dynamically by role (`AGENT` vs `TECHNICIAN`) using `usersApi.getStaff()`.
+
 ## Pending Steps
-- [ ] Step 8: Admin dashboard (/admin)
 - [ ] Step 9: Field portal (/field)
 - [ ] Step 10: Docker
 - [ ] Step 11: Tests
