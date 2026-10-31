@@ -56,8 +56,19 @@
 - Used Leaflet `L.divIcon` with custom Tailwind HTML markup instead of default image assets to prevent broken Leaflet icon URLs and improve visual style.
 - Included both Feed List and City Map toggles so users can choose between card view and spatial map view.
 
+### Step 6: Citizen Report Flow (/report) ✅
+- Implemented `LocationPicker.tsx` capturing GPS coordinates through browser `navigator.geolocation` with handling for permission denials, sensor unavailability, and manual fallback inputs.
+- Implemented `PhotoUploader.tsx` supporting PNG/JPG/JPEG file format validation, 5MB size limit checks, live preview, multi-phase S3 binary upload progress reporting, and error retry state.
+- Created `/report` incident submission page in `src/app/report/page.tsx` protected by `RouteGuard` for CITIZEN and ADMIN.
+- Executed two-phase submission lifecycle: incident creation first, followed by pre-signed S3 URL generation, direct binary upload, and backend metadata confirmation.
+- Implemented resilient error handling: photo upload failure keeps the created incident intact and provides an in-place retry without discarding form inputs.
+- Implemented success view displaying the assigned report reference number (`#1042`) and quick navigation to `/my-reports`.
+
+#### Decisions
+- Aligned photo upload payload strictly with backend DTOs (`PresignedUploadDto` and `ConfirmUploadDto`).
+- Separated incident creation from photo attachment so that network timeouts to S3 never lose an already-registered municipal incident.
+
 ## Pending Steps
-- [ ] Step 6: Citizen report flow (/report)
 - [ ] Step 7: Citizen My Reports (/my-reports)
 - [ ] Step 8: Admin dashboard (/admin)
 - [ ] Step 9: Field portal (/field)
