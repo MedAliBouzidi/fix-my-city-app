@@ -75,9 +75,19 @@
 - Maximum photo upload size enforced at 5 MB (5,242,880 bytes).
 - Upload s3Key enforced to stay strictly within target incident namespace (`incidents/${incidentId}/`).
 
+### Step 6: Notifications (SNS) ✅
+- `NotificationsService`: Configured with AWS SDK v3 `@aws-sdk/client-sns`.
+- Publishes SNS alert when incident density on the same street exceeds 10 incidents (`threshold: 10`).
+- Skippable in local development when `AWS_SNS_TOPIC_ARN` is unset.
+- Fully fail-safe: errors during SNS publishing are logged and never throw or interrupt incident creation.
+- Unit tests: Added 5 unit tests in `src/modules/notifications/notifications.service.spec.ts` (total 34 tests passing).
+
+#### Decisions
+- Street matching normalizes case and trims whitespace.
+- Alerts format message as structured JSON with event metadata.
+
 ## Pending Steps
 
-- [ ] Step 6: Notifications (SNS)
 - [ ] Step 7: Health module
 - [ ] Step 8: Dockerfile + docker-compose
 - [ ] Step 9: Tests
