@@ -107,9 +107,24 @@
 - Non-root user ownership on `/app/dist` for security hardening.
 - Production stage isolates runtime dependencies by running `npm ci --only=production`.
 
-## Pending Steps
+### Step 9: Tests ✅
+- Unit tests: 6 test suites and 39 tests passing:
+  - `auth.service.spec.ts`: Registration, password hashing, 409 conflict, login validation, token issuance, password omission.
+  - `roles.guard.spec.ts`: Guard allows open routes, validates authorized roles, denies unauthorized callers.
+  - `incidents.service.spec.ts`: Incident creation, auto-increment, status transitions (RECEIVED -> PENDING_VALIDATION -> VALIDATED/REJECTED -> ASSIGNED -> IN_PROGRESS -> RESOLVED), rejection of invalid transitions (400), ownership enforcement (403), audit notes generation.
+  - `media.service.spec.ts`: Pre-signed URL creation, namespace checking, photo metadata persistence, ownership checks.
+  - `notifications.service.spec.ts`: Street count threshold (>10), skippable ARN in local dev, fail-safe error handling.
+  - `health.service.spec.ts`: /health UP status, simulated failure mode toggle, /health/deep active DB & S3 checks.
+- E2E Integration test (`test/app.e2e-spec.ts`):
+  - End-to-end flow executing against real MySQL database:
+    1. Register citizen user via `POST /api/v1/auth/register` (201)
+    2. Authenticate citizen and acquire Bearer JWT via `POST /api/v1/auth/login` (200)
+    3. Submit new incident with Bearer token via `POST /api/v1/incidents` (201)
+    4. Query citizen submitted incidents via `GET /api/v1/incidents/my` (200)
 
-- [ ] Step 9: Tests
+## All MVP Scope Steps Completed 🎉
+
+All 9 steps have been built, validated, and tested.
 
 ## Open Questions
 _(none currently)_
