@@ -35,9 +35,21 @@
 - Stored latitude/longitude with `decimal(10, 7)` and custom transformer so TypeORM parses values as numbers rather than strings.
 - Applied `@Column({ select: false })` on User password column for defense-in-depth against accidental data leakage.
 
+### Step 3: Auth module ✅
+- `POST /api/v1/auth/register`: Public endpoint restricted strictly to `CITIZEN` role; hashes password using bcrypt with 10 rounds; rejects duplicate email with 409 Conflict.
+- `POST /api/v1/auth/login`: Validates credentials, issues signed JWT token containing `{ sub, email, role }`; returns token and user summary without password hash.
+- `JwtStrategy`: Configured with `@nestjs/passport` and `passport-jwt` extraction from Bearer token.
+- `@nestjs/throttler`: Configured rate limiting on auth endpoints and globally.
+- `GET /api/v1/users?role=AGENT|TECHNICIAN`: Admin-only endpoint to list staff members without returning password hashes.
+- `npm run seed`: Created `src/seed.ts` to provision initial ADMIN, AGENT, TECHNICIAN, and CITIZEN users with passwords read from environment variables (`SEED_*_PASSWORD`).
+- Unit tests: Added unit tests for `AuthService` and `RolesGuard` (9 tests passing).
+
+#### Decisions
+- Public registration only permits `CITIZEN` role (defaulting to CITIZEN if omitted, and rejecting other roles with 400).
+- Users endpoint filters specifically for staff roles (AGENT, TECHNICIAN) and requires ADMIN role.
+
 ## Pending Steps
 
-- [ ] Step 3: Auth module
 - [ ] Step 4: Incidents module
 - [ ] Step 5: Media module
 - [ ] Step 6: Notifications (SNS)
