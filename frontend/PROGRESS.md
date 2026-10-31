@@ -68,8 +68,16 @@
 - Aligned photo upload payload strictly with backend DTOs (`PresignedUploadDto` and `ConfirmUploadDto`).
 - Separated incident creation from photo attachment so that network timeouts to S3 never lose an already-registered municipal incident.
 
+### Step 7: Citizen My Reports (/my-reports) ✅
+- Implemented `/my-reports` personal tracker in `src/app/my-reports/page.tsx` protected by `RouteGuard` for CITIZEN.
+- Implemented tabbed views: Active Reports, Repairs In Progress, Resolved & Closed, and All Reports with dynamic counter chips.
+- Implemented `IncidentTimeline.tsx` visualizing the sequential status transitions (`RECEIVED` -> `PENDING_VALIDATION` -> `VALIDATED`/`REJECTED` -> `ASSIGNED` -> `IN_PROGRESS` -> `RESOLVED`).
+- Implemented comprehensive incident detail view with pre-signed photo viewer gallery, description, GPS location, inspection/repair notes log, and live refresh.
+
+#### Decisions
+- Displayed visual status progression directly on report inspection modals, showing clear rejection states or certified completion milestones.
+
 ## Pending Steps
-- [ ] Step 7: Citizen My Reports (/my-reports)
 - [ ] Step 8: Admin dashboard (/admin)
 - [ ] Step 9: Field portal (/field)
 - [ ] Step 10: Docker
