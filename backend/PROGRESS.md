@@ -86,9 +86,17 @@
 - Street matching normalizes case and trims whitespace.
 - Alerts format message as structured JSON with event metadata.
 
+### Step 7: Health module ✅
+- `GET /api/v1/health`: Primary public ALB health check returning status UP, uptime in seconds, and timestamp. Returns HTTP 500 when simulated failure mode is active.
+- `GET /api/v1/health/deep`: Verifies database connection (`SELECT 1`) and S3 storage accessibility (`HeadBucketCommand`). Returns 503 if database is disconnected.
+- `POST /api/v1/health/simulate-fail`: Chaos engineering toggle endpoint protected with JWT authentication and `ADMIN` role.
+- Unit tests: Added 5 unit tests for health endpoints and simulated failure scenarios (total 39 tests passing).
+
+#### Decisions
+- Simulated failure mode operates in-memory for testing resilience without modifying persistent database state.
+
 ## Pending Steps
 
-- [ ] Step 7: Health module
 - [ ] Step 8: Dockerfile + docker-compose
 - [ ] Step 9: Tests
 

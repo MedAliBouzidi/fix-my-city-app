@@ -10,6 +10,7 @@ import { UsersModule } from './modules/users/users.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { MediaModule } from './modules/media/media.module';
 import { IncidentsModule } from './modules/incidents/incidents.module';
+import { HealthModule } from './modules/health/health.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { IncidentsModule } from './modules/incidents/incidents.module';
     NotificationsModule,
     MediaModule,
     IncidentsModule,
+    HealthModule,
   ],
   providers: [
     {
