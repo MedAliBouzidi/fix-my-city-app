@@ -1,7 +1,16 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { getDatabaseConfig } from './config/database.config';
+import { AuthModule } from './modules/auth/auth.module';
+import { UsersModule } from './modules/users/users.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { MediaModule } from './modules/media/media.module';
+import { IncidentsModule } from './modules/incidents/incidents.module';
+import { HealthModule } from './modules/health/health.module';
 
 @Module({
   imports: [
@@ -9,6 +18,23 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) =>
+        getDatabaseConfig(configService),
+    }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 20,
+      },
+    ]),
+    AuthModule,
+    UsersModule,
+    NotificationsModule,
+    MediaModule,
+    IncidentsModule,
+    HealthModule,
   ],
   providers: [
     {
