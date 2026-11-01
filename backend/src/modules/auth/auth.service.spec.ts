@@ -105,6 +105,7 @@ describe('AuthService', () => {
         password: 'Password123!',
       });
 
+      expect(jwtService.signAsync).toHaveBeenCalled();
       expect(result.accessToken).toBe('jwt_token_sample');
       expect(result.user).toEqual({
         id: 'user-uuid-1',
