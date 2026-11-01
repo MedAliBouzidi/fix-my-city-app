@@ -99,8 +99,19 @@
 - Added Google Maps one-tap navigation links using latitude and longitude coordinates for field workers on smartphones.
 - Permitted technicians to optionally attach a repair completion photo when transitioning an incident to `RESOLVED`.
 
+### Step 10: Docker ✅
+- Built multi-stage production `Dockerfile` in `frontend/Dockerfile` leveraging `deps`, `builder`, and `runner` stages with Alpine Linux 20.
+- Implemented build argument `NEXT_PUBLIC_API_URL` allowing dynamic API URL injection during container builds.
+- Hardened runner container with non-root system user and group (`nextjs:nodejs`, UID/GID 1001), copying standalone output and static assets.
+- Integrated standard healthcheck probing `http://localhost:3000` via `wget`.
+- Created `docker-compose.yml` defining the frontend service.
+- Successfully built and validated the container image using Podman (`localhost/fixmycity-frontend:test`).
+
+#### Decisions
+- Employed Next.js `standalone` build output for minimal image footprint.
+- Ensured non-root execution for container security hardening.
+
 ## Pending Steps
-- [ ] Step 10: Docker
 - [ ] Step 11: Tests
 - [ ] Step 4: Shared components
 - [ ] Step 5: Landing page (/)
