@@ -4,7 +4,6 @@ import { NotificationsService } from './notifications.service';
 
 describe('NotificationsService', () => {
   let service: NotificationsService;
-  let configService: ConfigService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -24,7 +23,6 @@ describe('NotificationsService', () => {
     }).compile();
 
     service = module.get<NotificationsService>(NotificationsService);
-    configService = module.get<ConfigService>(ConfigService);
   });
 
   it('should be defined', () => {

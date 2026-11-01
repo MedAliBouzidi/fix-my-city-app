@@ -82,12 +82,16 @@ export async function apiFetch<T>(
     if (typeof window !== 'undefined') {
       const currentPath = window.location.pathname;
       if (currentPath !== '/login' && currentPath !== '/register') {
-        window.location.href = '/login?expired=1';
+        try {
+          window.location.href = '/login?expired=1';
+        } catch {
+          // jsdom test environment does not implement full navigation
+        }
       }
     }
   }
 
-  let data: any = null;
+  let data: unknown = null;
   const contentType = response.headers.get('content-type');
   if (contentType && contentType.includes('application/json')) {
     try {
@@ -101,14 +105,19 @@ export async function apiFetch<T>(
     let message = 'An unexpected error occurred';
     let validationErrors: string[] | undefined;
 
-    if (data && typeof data === 'object') {
-      if (Array.isArray(data.message)) {
-        validationErrors = data.message;
-        message = data.message.join('. ');
-      } else if (typeof data.message === 'string') {
-        message = data.message;
-      } else if (typeof data.error === 'string') {
-        message = data.error;
+    const dataObj =
+      data && typeof data === 'object'
+        ? (data as { message?: string | string[]; error?: string })
+        : null;
+
+    if (dataObj) {
+      if (Array.isArray(dataObj.message)) {
+        validationErrors = dataObj.message;
+        message = dataObj.message.join('. ');
+      } else if (typeof dataObj.message === 'string') {
+        message = dataObj.message;
+      } else if (typeof dataObj.error === 'string') {
+        message = dataObj.error;
       }
     } else {
       message = response.statusText || `HTTP ${response.status} Error`;
@@ -117,7 +126,7 @@ export async function apiFetch<T>(
     throw new ApiError(
       message,
       response.status,
-      data?.error || response.statusText,
+      dataObj?.error || response.statusText,
       validationErrors,
     );
   }
