@@ -111,16 +111,26 @@
 - Employed Next.js `standalone` build output for minimal image footprint.
 - Ensured non-root execution for container security hardening.
 
+### Step 11: Tests ✅
+- Configured Vitest test runner with `jsdom` environment, `@vitejs/plugin-react`, and `@testing-library/jest-dom` in `vitest.config.ts`.
+- Implemented unit tests for UI components:
+  - `StatusBadge.test.tsx`: validated all 7 incident status chips, custom labels, and size variants.
+  - `PriorityBadge.test.tsx`: tested priority chips (CRITICAL, HIGH, MEDIUM, LOW) and icon visibility options.
+  - `IncidentCard.test.tsx`: verified rendering of report ID, category, location, and click triggers.
+  - `PhotoUploader.test.tsx`: verified PNG/JPG format filtering, 5MB size limit rejection, progress bar rendering, and error retry handlers.
+- Implemented unit tests for API and authorization infrastructure:
+  - `api.test.ts`: verified base URL configuration, JWT header injection, 401 token clearing & redirect, error normalization, and network error handling.
+  - `RouteGuard.test.tsx`: verified session loading indicators, unauthenticated redirects to `/login`, unauthorized role dispatching, and authorized view rendering.
+- All 6 test suites with 29 passing unit tests (100% pass rate).
+
 ## Pending Steps
-- [ ] Step 11: Tests
-- [ ] Step 4: Shared components
-- [ ] Step 5: Landing page (/)
-- [ ] Step 6: Citizen report flow (/report)
-- [ ] Step 7: Citizen My Reports (/my-reports)
-- [ ] Step 8: Admin dashboard (/admin)
-- [ ] Step 9: Field portal (/field)
-- [ ] Step 10: Docker
-- [ ] Step 11: Tests
+_(All MVP frontend steps successfully completed!)_
+
+## Backend Gaps
+_(None identified. The backend API contract perfectly satisfied all requirements for auth, incidents, RBAC, media pre-signed URLs, staff queries, and resolved feeds.)_
+
+## Open Questions
+_(None currently)_
 
 ## Backend Gaps
 _(None identified so far)_
