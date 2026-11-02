@@ -19,6 +19,7 @@ Thumbs.db
 
 # Environment
 .env
+.env.prod
 
 # Test
 /coverage

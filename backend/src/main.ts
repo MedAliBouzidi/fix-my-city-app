@@ -10,14 +10,64 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const logger = new Logger('Bootstrap');
 
-  // Security headers
-  app.use(helmet());
+  // Security headers with cross-origin resource sharing support
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+      crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+    }),
+  );
 
   // Global prefix
   app.setGlobalPrefix('api/v1');
 
-  // CORS
-  app.enableCors();
+  // CORS configuration
+  const corsOriginEnv =
+    configService.get<string>('CORS_ORIGIN') ||
+    configService.get<string>('CORS_ORIGINS');
+  const allowedOrigins = corsOriginEnv
+    ? corsOriginEnv.split(',').map((o) => o.trim())
+    : '*';
+
+  app.enableCors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (curl, server-to-server, mobile)
+      if (!origin) return callback(null, true);
+
+      if (
+        allowedOrigins === '*' ||
+        (Array.isArray(allowedOrigins) && allowedOrigins.includes('*')) ||
+        (Array.isArray(allowedOrigins) && allowedOrigins.includes(origin))
+      ) {
+        return callback(null, true);
+      }
+
+      // Allow any localhost, loopback, or local docker container origin
+      if (
+        /^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0|fixmycity-[a-z0-9_-]+)(:\d+)?$/.test(
+          origin,
+        )
+      ) {
+        return callback(null, true);
+      }
+
+      // Permissive fallback so browser clients are never blocked
+      return callback(null, true);
+    },
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Origin',
+      'X-Requested-With',
+      'Content-Type',
+      'Accept',
+      'Authorization',
+      'Range',
+    ],
+    exposedHeaders: ['Content-Range', 'X-Content-Range'],
+    credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+  });
 
   // Global validation pipe
   app.useGlobalPipes(
