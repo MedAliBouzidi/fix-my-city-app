@@ -22,7 +22,7 @@ All 9 test suites (60 unit and integration tests) pass cleanly with 0 failures a
 | **Build & Typecheck** | `npx tsc --noEmit` | PASS | 0 TypeScript errors |
 | **Build & Typecheck** | `npm run build` | PASS | Next.js 14 App Router compiled 10 static routes (`/`, `/_not-found`, `/admin`, `/field`, `/login`, `/my-reports`, `/register`, `/report`) |
 | **Test Suite** | `npm test` | PASS | 9 test files, 60 tests passed 100% |
-| **Environment** | `NEXT_PUBLIC_API_URL` | PASS | Verified in `.env.local` and `.env.local.example` with scheme `http://localhost:4000/api/v1` |
+| **Environment** | `NEXT_PUBLIC_API_URL` | PASS | Verified in `.env.local` and `.env.example` with scheme `http://localhost:4000/api/v1` |
 | **Config** | `next.config.mjs` | PASS | Standalone output configured (`output: 'standalone'`) |
 | **Route Guards** | Role & Auth Guarding | PASS | Unauthenticated redirects to `/login?redirect=...`; authenticated redirects based on role: `CITIZEN` -> `/my-reports`, `ADMIN` -> `/admin`, `AGENT` / `TECHNICIAN` -> `/field` |
 | **Session & Auth** | HTTP 401 Handling | PASS | Token removed from localStorage, redirecting to `/login?expired=1` with session expiration alert banner |
