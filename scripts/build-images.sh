@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# FixMyCity — Build Docker/Podman Images with Versioning
+# FixMyCity — Build Container Images (Docker / Podman) with Versioning
 # ==============================================================================
-# Builds both backend and frontend images and tags them with a version number
-# and :latest.
+# Builds production-optimized multi-stage backend and frontend images.
 #
 # Usage:
 #   ./scripts/build-images.sh [VERSION] [OPTIONS]
@@ -11,6 +10,8 @@
 # Examples:
 #   ./scripts/build-images.sh 1.0.0
 #   ./scripts/build-images.sh 0.1.0 --no-cache
+#   ./scripts/build-images.sh 0.1.0 --backend-only
+#   ./scripts/build-images.sh 0.1.0 --frontend-only
 # ==============================================================================
 
 set -euo pipefail
@@ -39,20 +40,27 @@ elif command -v podman >/dev/null 2>&1; then
 elif command -v docker >/dev/null 2>&1; then
   CLI="docker"
 else
-  echo -e "${RED}[ERROR] Neither 'podman' nor 'docker' CLI was found on PATH.${NC}" >&2
+  echo -e "${RED}[ERROR] Neither 'docker' nor 'podman' CLI was found on PATH.${NC}" >&2
   exit 1
+fi
+
+# Enable BuildKit for faster, cache-optimized Docker builds
+if [ "${CLI}" = "docker" ]; then
+  export DOCKER_BUILDKIT=1
 fi
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 2. Parse Arguments
 # ──────────────────────────────────────────────────────────────────────────────
 VERSION="0.1.0"
+BUILD_BACKEND=true
+BUILD_FRONTEND=true
 EXTRA_BUILD_ARGS=()
 
-for arg in "$@"; do
-  case "${arg}" in
+while [[ $# -gt 0 ]]; do
+  case "$1" in
     -h|--help)
-      echo -e "${BOLD}FixMyCity — Image Build Tool${NC}"
+      echo -e "${BOLD}FixMyCity — Container Image Build Pipeline${NC}"
       echo ""
       echo "Usage:"
       echo "  $0 [VERSION] [OPTIONS]"
@@ -61,7 +69,10 @@ for arg in "$@"; do
       echo "  VERSION             Version tag to apply (default: 0.1.0)"
       echo ""
       echo "Options:"
+      echo "  -b, --backend-only  Build only the backend image"
+      echo "  -f, --frontend-only Build only the frontend image"
       echo "  --no-cache          Do not use cache when building images"
+      echo "  --pull              Always attempt to pull newer base images"
       echo "  -h, --help          Show this help message and exit"
       echo ""
       echo "Environment Overrides:"
@@ -69,13 +80,27 @@ for arg in "$@"; do
       echo "  NEXT_PUBLIC_API_URL Override backend API URL baked into frontend"
       exit 0
       ;;
+    -b|--backend-only)
+      BUILD_FRONTEND=false
+      shift
+      ;;
+    -f|--frontend-only)
+      BUILD_BACKEND=false
+      shift
+      ;;
     --no-cache)
       EXTRA_BUILD_ARGS+=("--no-cache")
+      shift
+      ;;
+    --pull)
+      EXTRA_BUILD_ARGS+=("--pull")
+      shift
       ;;
     *)
-      if [[ ! "${arg}" =~ ^-- ]]; then
-        VERSION="${arg}"
+      if [[ ! "$1" =~ ^-- ]]; then
+        VERSION="$1"
       fi
+      shift
       ;;
   esac
 done
@@ -83,19 +108,26 @@ done
 BACKEND_IMAGE="fixmycity-backend"
 FRONTEND_IMAGE="fixmycity-frontend"
 
-# Extract API URL from frontend/.env.prod if present, else fallback
+# Extract API URL: check env override -> frontend/.env.prod -> frontend/.env -> fallback
 API_URL="${NEXT_PUBLIC_API_URL:-}"
 if [ -z "${API_URL}" ] && [ -f "${ROOT_DIR}/frontend/.env.prod" ]; then
-  API_URL=$(grep -E "^[[:space:]]*NEXT_PUBLIC_API_URL=" "${ROOT_DIR}/frontend/.env.prod" | tail -n 1 | cut -d '=' -f 2- | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")
+  API_URL=$(grep -E "^[[:space:]]*NEXT_PUBLIC_API_URL=" "${ROOT_DIR}/frontend/.env.prod" 2>/dev/null | tail -n 1 | cut -d '=' -f 2- | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")
+fi
+if [ -z "${API_URL}" ] && [ -f "${ROOT_DIR}/frontend/.env" ]; then
+  API_URL=$(grep -E "^[[:space:]]*NEXT_PUBLIC_API_URL=" "${ROOT_DIR}/frontend/.env" 2>/dev/null | tail -n 1 | cut -d '=' -f 2- | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")
 fi
 API_URL="${API_URL:-http://localhost:4000/api/v1}"
 
 echo -e "${BLUE}${BOLD}================================================================${NC}"
-echo -e "${BLUE}${BOLD}   FixMyCity — Image Build Pipeline                             ${NC}"
+echo -e "${BLUE}${BOLD}   FixMyCity — Container Image Build Pipeline                   ${NC}"
 echo -e "${BLUE}${BOLD}================================================================${NC}"
 echo -e "  Container Engine:    ${GREEN}${CLI}${NC}"
 echo -e "  Target Version:      ${GREEN}${VERSION}${NC} (and :latest)"
-echo -e "  Frontend API URL:    ${GREEN}${API_URL}${NC}"
+echo -e "  Build Backend:       ${GREEN}${BUILD_BACKEND}${NC}"
+echo -e "  Build Frontend:      ${GREEN}${BUILD_FRONTEND}${NC}"
+if [ "${BUILD_FRONTEND}" = true ]; then
+  echo -e "  Frontend API URL:    ${GREEN}${API_URL}${NC}"
+fi
 if [ ${#EXTRA_BUILD_ARGS[@]} -gt 0 ]; then
   echo -e "  Extra Build Flags:   ${YELLOW}${EXTRA_BUILD_ARGS[*]}${NC}"
 fi
@@ -104,33 +136,37 @@ echo -e "${BLUE}----------------------------------------------------------------
 # ──────────────────────────────────────────────────────────────────────────────
 # 3. Build Backend Image
 # ──────────────────────────────────────────────────────────────────────────────
-echo -e "\n${YELLOW}[1/2] Building Backend Image (${BACKEND_IMAGE}:${VERSION})...${NC}"
-"${CLI}" build \
-  ${EXTRA_BUILD_ARGS[@]+"${EXTRA_BUILD_ARGS[@]}"} \
-  -t "localhost/${BACKEND_IMAGE}:${VERSION}" \
-  -t "localhost/${BACKEND_IMAGE}:latest" \
-  -t "${BACKEND_IMAGE}:${VERSION}" \
-  -t "${BACKEND_IMAGE}:latest" \
-  -f "${ROOT_DIR}/backend/Dockerfile" \
-  "${ROOT_DIR}/backend"
+if [ "${BUILD_BACKEND}" = true ]; then
+  echo -e "\n${YELLOW}[BUILD] Compiling Backend Image (${BACKEND_IMAGE}:${VERSION})...${NC}"
+  "${CLI}" build \
+    ${EXTRA_BUILD_ARGS[@]+"${EXTRA_BUILD_ARGS[@]}"} \
+    -t "localhost/${BACKEND_IMAGE}:${VERSION}" \
+    -t "localhost/${BACKEND_IMAGE}:latest" \
+    -t "${BACKEND_IMAGE}:${VERSION}" \
+    -t "${BACKEND_IMAGE}:latest" \
+    -f "${ROOT_DIR}/backend/Dockerfile" \
+    "${ROOT_DIR}/backend"
 
-echo -e "${GREEN}✓ Successfully built and tagged ${BACKEND_IMAGE}:${VERSION} and ${BACKEND_IMAGE}:latest${NC}"
+  echo -e "${GREEN}✓ Successfully built and tagged ${BACKEND_IMAGE}:${VERSION} and ${BACKEND_IMAGE}:latest${NC}"
+fi
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 4. Build Frontend Image
 # ──────────────────────────────────────────────────────────────────────────────
-echo -e "\n${YELLOW}[2/2] Building Frontend Image (${FRONTEND_IMAGE}:${VERSION})...${NC}"
-"${CLI}" build \
-  ${EXTRA_BUILD_ARGS[@]+"${EXTRA_BUILD_ARGS[@]}"} \
-  --build-arg NEXT_PUBLIC_API_URL="${API_URL}" \
-  -t "localhost/${FRONTEND_IMAGE}:${VERSION}" \
-  -t "localhost/${FRONTEND_IMAGE}:latest" \
-  -t "${FRONTEND_IMAGE}:${VERSION}" \
-  -t "${FRONTEND_IMAGE}:latest" \
-  -f "${ROOT_DIR}/frontend/Dockerfile" \
-  "${ROOT_DIR}/frontend"
+if [ "${BUILD_FRONTEND}" = true ]; then
+  echo -e "\n${YELLOW}[BUILD] Compiling Frontend Image (${FRONTEND_IMAGE}:${VERSION})...${NC}"
+  "${CLI}" build \
+    ${EXTRA_BUILD_ARGS[@]+"${EXTRA_BUILD_ARGS[@]}"} \
+    --build-arg NEXT_PUBLIC_API_URL="${API_URL}" \
+    -t "localhost/${FRONTEND_IMAGE}:${VERSION}" \
+    -t "localhost/${FRONTEND_IMAGE}:latest" \
+    -t "${FRONTEND_IMAGE}:${VERSION}" \
+    -t "${FRONTEND_IMAGE}:latest" \
+    -f "${ROOT_DIR}/frontend/Dockerfile" \
+    "${ROOT_DIR}/frontend"
 
-echo -e "${GREEN}✓ Successfully built and tagged ${FRONTEND_IMAGE}:${VERSION} and ${FRONTEND_IMAGE}:latest${NC}"
+  echo -e "${GREEN}✓ Successfully built and tagged ${FRONTEND_IMAGE}:${VERSION} and ${FRONTEND_IMAGE}:latest${NC}"
+fi
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 5. Summary
@@ -139,9 +175,15 @@ echo -e "\n${BLUE}${BOLD}=======================================================
 echo -e "${GREEN}${BOLD}   Image Build Complete!                                        ${NC}"
 echo -e "${BLUE}${BOLD}================================================================${NC}"
 echo -e "Built Images:"
-echo -e "  • ${BOLD}localhost/${BACKEND_IMAGE}:${VERSION}${NC} (and :latest)"
-echo -e "  • ${BOLD}localhost/${FRONTEND_IMAGE}:${VERSION}${NC} (and :latest)"
+if [ "${BUILD_BACKEND}" = true ]; then
+  echo -e "  • ${BOLD}${BACKEND_IMAGE}:${VERSION}${NC} (and :latest)"
+fi
+if [ "${BUILD_FRONTEND}" = true ]; then
+  echo -e "  • ${BOLD}${FRONTEND_IMAGE}:${VERSION}${NC} (and :latest)"
+fi
 echo ""
-echo -e "Next step: Run containers with:"
-echo -e "  ${CYAN}./scripts/create-containers.sh ${VERSION}${NC}"
+echo -e "Next steps:"
+echo -e "  • Provision individual containers: ${CYAN}./scripts/create-containers.sh ${VERSION}${NC}"
+echo -e "  • Or run the full stack compose:    ${CYAN}docker compose up -d${NC}"
+echo -e "  • Clean old images/containers:     ${CYAN}./scripts/clean-containers.sh${NC}"
 echo -e "${BLUE}================================================================${NC}"

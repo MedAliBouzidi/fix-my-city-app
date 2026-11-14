@@ -6,7 +6,9 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: http://localhost:4000/api/v1
+        # Locally: http://localhost:4000/api/v1
+        # On AWS:  http://<ALB-DNS>/api/v1  (or set NEXT_PUBLIC_API_URL in .env.prod)
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000/api/v1}
     container_name: fixmycity-frontend
     restart: unless-stopped
     ports:

@@ -24,6 +24,11 @@ services:
       - AWS_REGION=us-east-1
       - AWS_S3_BUCKET_NAME=fixmycity-media-storage-production
       - AWS_SNS_TOPIC_ARN=
+      # Leave blank on AWS EC2 (IAM role); set for local dev or CI
+      - AWS_ACCESS_KEY_ID=
+      - AWS_SECRET_ACCESS_KEY=
+      # Set to http://localstack:4566 when using LocalStack, blank for real AWS
+      - AWS_ENDPOINT_URL=
     depends_on:
       mysql:
         condition: service_healthy

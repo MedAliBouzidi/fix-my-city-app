@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# FixMyCity — Create Containers from .env.prod Configurations
+# FixMyCity — Create & Provision Containers from Environment Configurations
 # ==============================================================================
-# 1. Verifies the existence of backend/.env.prod and frontend/.env.prod
-# 2. Verifies that all required environment variables are set and non-empty
-# 3. Ensures the container network exists and can resolve the database
-# 4. Provisions backend and frontend containers using the verified .env.prod files
+# 1. Validates backend and frontend environment files (.env.prod or .env)
+# 2. Ensures the dedicated container bridge network exists
+# 3. Connects the database container if detected
+# 4. Removes legacy containers and provisions fresh backend & frontend instances
 #
 # Usage:
 #   ./scripts/create-containers.sh [VERSION] [OPTIONS]
@@ -13,6 +13,8 @@
 # Examples:
 #   ./scripts/create-containers.sh 0.1.0
 #   ./scripts/create-containers.sh latest --no-start
+#   ./scripts/create-containers.sh 0.1.0 --local
+#   ./scripts/create-containers.sh 0.1.0 --network my-custom-net
 # ==============================================================================
 
 set -euo pipefail
@@ -41,7 +43,7 @@ elif command -v podman >/dev/null 2>&1; then
 elif command -v docker >/dev/null 2>&1; then
   CLI="docker"
 else
-  echo -e "${RED}[ERROR] Neither 'podman' nor 'docker' CLI was found on PATH.${NC}" >&2
+  echo -e "${RED}[ERROR] Neither 'docker' nor 'podman' CLI was found on PATH.${NC}" >&2
   exit 1
 fi
 
@@ -51,9 +53,12 @@ fi
 VERSION="0.1.0"
 AUTO_START=true
 NETWORK_NAME="fixmycity-net"
+USE_LOCAL_ENV=false
+CUSTOM_BACKEND_ENV=""
+CUSTOM_FRONTEND_ENV=""
 
-for arg in "$@"; do
-  case "${arg}" in
+while [[ $# -gt 0 ]]; do
+  case "$1" in
     -h|--help)
       echo -e "${BOLD}FixMyCity — Container Provisioning Tool${NC}"
       echo ""
@@ -61,29 +66,45 @@ for arg in "$@"; do
       echo "  $0 [VERSION] [OPTIONS]"
       echo ""
       echo "Arguments:"
-      echo "  VERSION             Image version tag to deploy (default: 0.1.0)"
+      echo "  VERSION                 Image version tag to deploy (default: 0.1.0)"
       echo ""
       echo "Options:"
-      echo "  --no-start          Create containers without starting them"
-      echo "  --network <name>    Specify custom container network name"
-      echo "  -h, --help          Show this help message and exit"
-      echo ""
-      echo "Config Files Used:"
-      echo "  Backend:   ${ROOT_DIR}/backend/.env.prod"
-      echo "  Frontend:  ${ROOT_DIR}/frontend/.env.prod"
+      echo "  --local                 Use local .env instead of .env.prod"
+      echo "  --no-start              Create containers without starting them"
+      echo "  --network <name>        Specify custom container network (default: fixmycity-net)"
+      echo "  --backend-env <file>    Path to backend env file"
+      echo "  --frontend-env <file>   Path to frontend env file"
+      echo "  -h, --help              Show this help message and exit"
       exit 0
+      ;;
+    --local)
+      USE_LOCAL_ENV=true
+      shift
       ;;
     --no-start)
       AUTO_START=false
+      shift
       ;;
     --network)
       shift
       NETWORK_NAME="$1"
+      shift
+      ;;
+    --backend-env)
+      shift
+      CUSTOM_BACKEND_ENV="$1"
+      shift
+      ;;
+    --frontend-env)
+      shift
+      CUSTOM_FRONTEND_ENV="$1"
+      shift
       ;;
     *)
-      if [[ ! "${arg}" =~ ^-- ]]; then
-        VERSION="${arg}"
+      if [[ ! "$1" =~ ^-- ]]; then
+        VERSION="$1"
       fi
+      shift
       ;;
   esac
 done
@@ -93,24 +114,39 @@ FRONTEND_IMAGE_BASE="fixmycity-frontend"
 BACKEND_CONTAINER="fixmycity-backend"
 FRONTEND_CONTAINER="fixmycity-frontend"
 
-BACKEND_ENV_FILE="${ROOT_DIR}/backend/.env.prod"
-FRONTEND_ENV_FILE="${ROOT_DIR}/frontend/.env.prod"
+# Resolve Environment Files
+if [ -n "${CUSTOM_BACKEND_ENV}" ]; then
+  BACKEND_ENV_FILE="${CUSTOM_BACKEND_ENV}"
+elif [ "${USE_LOCAL_ENV}" = true ] || [ ! -f "${ROOT_DIR}/backend/.env.prod" ]; then
+  BACKEND_ENV_FILE="${ROOT_DIR}/backend/.env"
+else
+  BACKEND_ENV_FILE="${ROOT_DIR}/backend/.env.prod"
+fi
+
+if [ -n "${CUSTOM_FRONTEND_ENV}" ]; then
+  FRONTEND_ENV_FILE="${CUSTOM_FRONTEND_ENV}"
+elif [ "${USE_LOCAL_ENV}" = true ] || [ ! -f "${ROOT_DIR}/frontend/.env.prod" ]; then
+  FRONTEND_ENV_FILE="${ROOT_DIR}/frontend/.env"
+else
+  FRONTEND_ENV_FILE="${ROOT_DIR}/frontend/.env.prod"
+fi
 
 echo -e "${BLUE}${BOLD}================================================================${NC}"
-echo -e "${BLUE}${BOLD}   FixMyCity — Container Provisioning (.env.prod)              ${NC}"
+echo -e "${BLUE}${BOLD}   FixMyCity — Container Provisioning Pipeline                  ${NC}"
 echo -e "${BLUE}${BOLD}================================================================${NC}"
 echo -e "  Container Engine:    ${GREEN}${CLI}${NC}"
-echo -e "  Image Tag:           ${GREEN}${VERSION}${NC}"
+echo -e "  Target Tag:          ${GREEN}${VERSION}${NC}"
 echo -e "  Network:             ${GREEN}${NETWORK_NAME}${NC}"
 echo -e "  Auto-Start:          ${GREEN}${AUTO_START}${NC}"
+echo -e "  Backend Env:         ${CYAN}${BACKEND_ENV_FILE}${NC}"
+echo -e "  Frontend Env:        ${CYAN}${FRONTEND_ENV_FILE}${NC}"
 echo -e "${BLUE}----------------------------------------------------------------${NC}"
 
 # ──────────────────────────────────────────────────────────────────────────────
-# 3. Verify .env.prod Files and Environment Variables
+# 3. Verify Environment Files and Variables
 # ──────────────────────────────────────────────────────────────────────────────
-echo -e "\n${YELLOW}[1/4] Verifying .env.prod files and required variables...${NC}"
+echo -e "\n${YELLOW}[1/4] Auditing environment configurations...${NC}"
 
-# Helper function to get variable value from an env file without sourcing
 get_env_val() {
   local file="$1"
   local key="$2"
@@ -121,12 +157,12 @@ get_env_val() {
 
 ERRORS_FOUND=0
 
-# Verify backend/.env.prod
+# Verify backend environment
 if [ ! -f "${BACKEND_ENV_FILE}" ]; then
-  echo -e "  ${RED}✗ Backend env file missing at: ${BACKEND_ENV_FILE}${NC}" >&2
+  echo -e "  ${RED}✗ Backend env file not found at: ${BACKEND_ENV_FILE}${NC}" >&2
   ERRORS_FOUND=$((ERRORS_FOUND + 1))
 else
-  echo -e "  ${CYAN}Auditing backend/.env.prod: ${BOLD}${BACKEND_ENV_FILE}${NC}"
+  echo -e "  ${CYAN}Backend Environment (${BACKEND_ENV_FILE}):${NC}"
   REQUIRED_BACKEND_VARS=(
     "PORT"
     "NODE_ENV"
@@ -156,12 +192,12 @@ else
   done
 fi
 
-# Verify frontend/.env.prod
+# Verify frontend environment
 if [ ! -f "${FRONTEND_ENV_FILE}" ]; then
-  echo -e "  ${RED}✗ Frontend env file missing at: ${FRONTEND_ENV_FILE}${NC}" >&2
+  echo -e "  ${RED}✗ Frontend env file not found at: ${FRONTEND_ENV_FILE}${NC}" >&2
   ERRORS_FOUND=$((ERRORS_FOUND + 1))
 else
-  echo -e "\n  ${CYAN}Auditing frontend/.env.prod: ${BOLD}${FRONTEND_ENV_FILE}${NC}"
+  echo -e "\n  ${CYAN}Frontend Environment (${FRONTEND_ENV_FILE}):${NC}"
   REQUIRED_FRONTEND_VARS=(
     "NEXT_PUBLIC_API_URL"
     "PORT"
@@ -174,7 +210,7 @@ else
       ERRORS_FOUND=$((ERRORS_FOUND + 1))
     else
       if [ "${var}" = "NEXT_PUBLIC_API_URL" ] && [[ ! "${val}" =~ ^https?:// ]]; then
-        echo -e "    ${RED}✗ ${var}${NC}: must include scheme (http:// or https://), got: '${val}'"
+        echo -e "    ${RED}✗ ${var}${NC}: must start with http:// or https:// (got: '${val}')"
         ERRORS_FOUND=$((ERRORS_FOUND + 1))
       else
         echo -e "    ${GREEN}✓ ${var}${NC}=${val}"
@@ -184,12 +220,11 @@ else
 fi
 
 if [ ${ERRORS_FOUND} -gt 0 ]; then
-  echo -e "\n${RED}[ERROR] .env.prod verification failed with ${ERRORS_FOUND} error(s).${NC}" >&2
-  echo -e "        Please ensure both backend/.env.prod and frontend/.env.prod exist and are configured." >&2
+  echo -e "\n${RED}[ERROR] Environment validation failed with ${ERRORS_FOUND} error(s).${NC}" >&2
   exit 1
 fi
 
-echo -e "\n${GREEN}✓ Environment files verified successfully!${NC}"
+echo -e "\n${GREEN}✓ Environment configurations validated successfully.${NC}"
 
 # Extract ports and database host
 BACKEND_PORT=$(get_env_val "${BACKEND_ENV_FILE}" "PORT")
@@ -198,48 +233,69 @@ BACKEND_PORT="${BACKEND_PORT:-4000}"
 FRONTEND_PORT="${FRONTEND_PORT:-3000}"
 DB_HOST=$(get_env_val "${BACKEND_ENV_FILE}" "DATABASE_HOST")
 
-# Helper function to resolve local image reference
+# Helper to find image tag in local engine
 resolve_image() {
   local base="$1"
   local tag="$2"
-  if "${CLI}" image exists "localhost/${base}:${tag}" 2>/dev/null; then
-    echo "localhost/${base}:${tag}"
-  elif "${CLI}" image exists "${base}:${tag}" 2>/dev/null; then
+  if "${CLI}" image inspect "${base}:${tag}" >/dev/null 2>&1; then
     echo "${base}:${tag}"
-  elif "${CLI}" image exists "localhost/${base}:latest" 2>/dev/null; then
+  elif "${CLI}" image inspect "localhost/${base}:${tag}" >/dev/null 2>&1; then
+    echo "localhost/${base}:${tag}"
+  elif "${CLI}" image inspect "${base}:latest" >/dev/null 2>&1; then
+    echo "${base}:latest"
+  elif "${CLI}" image inspect "localhost/${base}:latest" >/dev/null 2>&1; then
     echo "localhost/${base}:latest"
   else
-    echo "localhost/${base}:${tag}"
+    echo ""
   fi
 }
 
 BACKEND_IMAGE_REF=$(resolve_image "${BACKEND_IMAGE_BASE}" "${VERSION}")
 FRONTEND_IMAGE_REF=$(resolve_image "${FRONTEND_IMAGE_BASE}" "${VERSION}")
 
+if [ -z "${BACKEND_IMAGE_REF}" ] || [ -z "${FRONTEND_IMAGE_REF}" ]; then
+  echo -e "\n${YELLOW}[WARNING] One or more images could not be located in local ${CLI} store:${NC}"
+  [ -z "${BACKEND_IMAGE_REF}" ] && echo -e "  • Missing: ${BOLD}${BACKEND_IMAGE_BASE}:${VERSION}${NC}"
+  [ -z "${FRONTEND_IMAGE_REF}" ] && echo -e "  • Missing: ${BOLD}${FRONTEND_IMAGE_BASE}:${VERSION}${NC}"
+  echo -e "Run the image build tool first:"
+  echo -e "  ${CYAN}./scripts/build-images.sh ${VERSION}${NC}"
+  echo ""
+  # Fallback to tagged references if user plans to pull from registry
+  BACKEND_IMAGE_REF="${BACKEND_IMAGE_BASE}:${VERSION}"
+  FRONTEND_IMAGE_REF="${FRONTEND_IMAGE_BASE}:${VERSION}"
+fi
+
 # ──────────────────────────────────────────────────────────────────────────────
 # 4. Network Configuration
 # ──────────────────────────────────────────────────────────────────────────────
 echo -e "\n${YELLOW}[2/4] Ensuring container network '${NETWORK_NAME}' exists...${NC}"
-if ! "${CLI}" network exists "${NETWORK_NAME}" 2>/dev/null && ! "${CLI}" network inspect "${NETWORK_NAME}" >/dev/null 2>&1; then
-  echo -e "Creating network ${BOLD}${NETWORK_NAME}${NC}..."
+if ! "${CLI}" network inspect "${NETWORK_NAME}" >/dev/null 2>&1; then
+  echo -e "Creating bridge network ${BOLD}${NETWORK_NAME}${NC}..."
   "${CLI}" network create "${NETWORK_NAME}"
+  echo -e "${GREEN}✓ Network '${NETWORK_NAME}' created.${NC}"
+else
+  echo -e "${GREEN}✓ Network '${NETWORK_NAME}' already exists.${NC}"
 fi
 
-# If DATABASE_HOST refers to a running container (like app_mysql_1), connect it to fixmycity-net
-if [ -n "${DB_HOST}" ] && "${CLI}" ps --format "{{.Names}}" 2>/dev/null | grep -Eq "^${DB_HOST}\$"; then
-  echo -e "Detected database container '${DB_HOST}'. Ensuring it is connected to '${NETWORK_NAME}'..."
-  "${CLI}" network connect "${NETWORK_NAME}" "${DB_HOST}" 2>/dev/null || true
-fi
+# If DATABASE_HOST matches a running container name, attach it to the network
+for db_candidate in "${DB_HOST}" "fixmycity-mysql" "mysql"; do
+  if [ -n "${db_candidate}" ] && "${CLI}" ps --format "{{.Names}}" 2>/dev/null | grep -Eq "^${db_candidate}\$"; then
+    echo -e "Detected database container '${db_candidate}'. Ensuring connection to '${NETWORK_NAME}'..."
+    "${CLI}" network connect "${NETWORK_NAME}" "${db_candidate}" 2>/dev/null || true
+    break
+  fi
+done
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 5. Clean Previous Containers
 # ──────────────────────────────────────────────────────────────────────────────
-echo -e "\n${YELLOW}[3/4] Removing existing containers if present...${NC}"
+echo -e "\n${YELLOW}[3/4] Removing existing FixMyCity containers...${NC}"
 clean_container() {
   local name="$1"
   if "${CLI}" ps -a --format "{{.Names}}" 2>/dev/null | grep -Eq "^${name}\$"; then
     echo -e "Removing container '${name}'..."
     "${CLI}" rm -f "${name}" >/dev/null 2>&1 || true
+    echo -e "${GREEN}✓ Container '${name}' removed.${NC}"
   fi
 }
 clean_container "${BACKEND_CONTAINER}"
@@ -248,55 +304,59 @@ clean_container "${FRONTEND_CONTAINER}"
 # ──────────────────────────────────────────────────────────────────────────────
 # 6. Create & Launch Containers
 # ──────────────────────────────────────────────────────────────────────────────
-echo -e "\n${YELLOW}[4/4] Creating containers from .env.prod...${NC}"
+echo -e "\n${YELLOW}[4/4] Provisioning containers...${NC}"
 
 # Backend Container
-echo -e "Creating container ${BOLD}${BACKEND_CONTAINER}${NC} using ${BACKEND_IMAGE_REF}..."
+echo -e "Provisioning ${BOLD}${BACKEND_CONTAINER}${NC} using ${BACKEND_IMAGE_REF}..."
 if [ "${AUTO_START}" = true ]; then
   "${CLI}" run -d \
     --name "${BACKEND_CONTAINER}" \
     --network "${NETWORK_NAME}" \
+    --restart unless-stopped \
     --env-file "${BACKEND_ENV_FILE}" \
     -p "${BACKEND_PORT}:${BACKEND_PORT}" \
     "${BACKEND_IMAGE_REF}"
-  echo -e "${GREEN}✓ Container ${BACKEND_CONTAINER} started on port ${BACKEND_PORT}.${NC}"
+  echo -e "${GREEN}✓ Container ${BACKEND_CONTAINER} running on port ${BACKEND_PORT}.${NC}"
 else
   "${CLI}" create \
     --name "${BACKEND_CONTAINER}" \
     --network "${NETWORK_NAME}" \
+    --restart unless-stopped \
     --env-file "${BACKEND_ENV_FILE}" \
     -p "${BACKEND_PORT}:${BACKEND_PORT}" \
     "${BACKEND_IMAGE_REF}"
-  echo -e "${GREEN}✓ Container ${BACKEND_CONTAINER} created.${NC}"
+  echo -e "${GREEN}✓ Container ${BACKEND_CONTAINER} created (stopped).${NC}"
 fi
 
 # Frontend Container
-echo -e "Creating container ${BOLD}${FRONTEND_CONTAINER}${NC} using ${FRONTEND_IMAGE_REF}..."
+echo -e "Provisioning ${BOLD}${FRONTEND_CONTAINER}${NC} using ${FRONTEND_IMAGE_REF}..."
 if [ "${AUTO_START}" = true ]; then
   "${CLI}" run -d \
     --name "${FRONTEND_CONTAINER}" \
     --network "${NETWORK_NAME}" \
+    --restart unless-stopped \
     --env-file "${FRONTEND_ENV_FILE}" \
     -p "${FRONTEND_PORT}:${FRONTEND_PORT}" \
     "${FRONTEND_IMAGE_REF}"
-  echo -e "${GREEN}✓ Container ${FRONTEND_CONTAINER} started on port ${FRONTEND_PORT}.${NC}"
+  echo -e "${GREEN}✓ Container ${FRONTEND_CONTAINER} running on port ${FRONTEND_PORT}.${NC}"
 else
   "${CLI}" create \
     --name "${FRONTEND_CONTAINER}" \
     --network "${NETWORK_NAME}" \
+    --restart unless-stopped \
     --env-file "${FRONTEND_ENV_FILE}" \
     -p "${FRONTEND_PORT}:${FRONTEND_PORT}" \
     "${FRONTEND_IMAGE_REF}"
-  echo -e "${GREEN}✓ Container ${FRONTEND_CONTAINER} created.${NC}"
+  echo -e "${GREEN}✓ Container ${FRONTEND_CONTAINER} created (stopped).${NC}"
 fi
 
 # ──────────────────────────────────────────────────────────────────────────────
-# 7. Summary
+# 7. Summary & Service Endpoints
 # ──────────────────────────────────────────────────────────────────────────────
 echo -e "\n${BLUE}${BOLD}================================================================${NC}"
 echo -e "${GREEN}${BOLD}   Containers Successfully Provisioned!                         ${NC}"
 echo -e "${BLUE}${BOLD}================================================================${NC}"
-echo -e "Active Containers:"
+echo -e "Container Status:"
 "${CLI}" ps -a --filter "name=fixmycity-" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}\t{{.Image}}"
 
 echo -e "\nService Endpoints:"

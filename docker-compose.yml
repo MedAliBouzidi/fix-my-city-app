@@ -1,0 +1,107 @@
+# ============================================================
+# FixMyCity — Unified Local Development / Staging Compose File
+# ============================================================
+# Runs: MySQL 8 + Backend (NestJS) + Frontend (Next.js)
+#
+# Quick start (local):
+#   docker compose up --build
+#
+# AWS S3/SNS (optional — leave blank to skip):
+#   Set AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY in backend/.env
+#   Or export them in your shell before running docker compose.
+#
+# LocalStack (S3/SNS emulation locally):
+#   Set AWS_ENDPOINT_URL=http://localstack:4566 and add a localstack
+#   service below, or run LocalStack separately on port 4566.
+# ============================================================
+
+version: '3.8'
+
+services:
+  # ──────────────────────────────────────
+  # MySQL 8 Database
+  # ──────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: fixmycity-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: fixmycity
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: Password123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpass"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - fixmycity-network
+
+  # ──────────────────────────────────────
+  # NestJS Backend API
+  # ──────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fixmycity-backend
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    env_file:
+      - ./backend/.env
+    environment:
+      # Override DATABASE_HOST so the backend finds the compose MySQL service
+      - DATABASE_HOST=mysql
+      - DATABASE_PORT=3306
+      - NODE_ENV=production
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - fixmycity-network
+
+  # ──────────────────────────────────────
+  # Next.js Frontend
+  # ──────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # Points the client-side bundle at the backend.
+        # Locally: use localhost (browser connects directly to the backend port).
+        # On AWS:  set NEXT_PUBLIC_API_URL in frontend/.env or as a build arg.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000/api/v1}
+    container_name: fixmycity-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./frontend/.env
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    depends_on:
+      - backend
+    networks:
+      - fixmycity-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+networks:
+  fixmycity-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
