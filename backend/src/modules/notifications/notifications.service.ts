@@ -14,7 +14,26 @@ export class NotificationsService {
 
     if (this.topicArn && this.topicArn.trim() !== '') {
       try {
-        this.snsClient = new SNSClient({ region });
+        // Support explicit credentials for local dev / CI; falls back to
+        // EC2 instance role automatically when these env vars are absent.
+        const clientConfig: ConstructorParameters<typeof SNSClient>[0] = {
+          region,
+        };
+
+        const endpointUrl = this.configService.get<string>('AWS_ENDPOINT_URL');
+        if (endpointUrl) {
+          clientConfig.endpoint = endpointUrl;
+        }
+
+        const accessKeyId = this.configService.get<string>('AWS_ACCESS_KEY_ID');
+        const secretAccessKey = this.configService.get<string>(
+          'AWS_SECRET_ACCESS_KEY',
+        );
+        if (accessKeyId && secretAccessKey) {
+          clientConfig.credentials = { accessKeyId, secretAccessKey };
+        }
+
+        this.snsClient = new SNSClient(clientConfig);
         this.logger.log(`SNS Client configured for topic: ${this.topicArn}`);
       } catch (err) {
         this.logger.warn(`Failed to initialize SNS client: ${err.message}`);

@@ -148,28 +148,47 @@ export class IncidentsService {
   }
 
   async findMyIncidents(callerId: string): Promise<Incident[]> {
-    return this.incidentRepository.find({
+    const incidents = await this.incidentRepository.find({
       where: { reporterId: callerId },
-      order: { createdAt: 'DESC' },
+      relations: ['photos'],
+      order: { createdAt: 'DESC', photos: { createdAt: 'ASC' } },
     });
+    return this.attachPhotoUrls(incidents);
   }
 
   async findAssigned(caller: { id: string; role: Role }): Promise<Incident[]> {
+    let incidents: Incident[] = [];
+
     if (caller.role === Role.AGENT) {
-      return this.incidentRepository.find({
+      incidents = await this.incidentRepository.find({
         where: { agentId: caller.id },
-        order: { createdAt: 'DESC' },
+        relations: ['photos'],
+        order: { createdAt: 'DESC', photos: { createdAt: 'ASC' } },
       });
-    }
-
-    if (caller.role === Role.TECHNICIAN) {
-      return this.incidentRepository.find({
+    } else if (caller.role === Role.TECHNICIAN) {
+      incidents = await this.incidentRepository.find({
         where: { technicianId: caller.id },
-        order: { createdAt: 'DESC' },
+        relations: ['photos'],
+        order: { createdAt: 'DESC', photos: { createdAt: 'ASC' } },
       });
     }
 
-    return [];
+    return this.attachPhotoUrls(incidents);
+  }
+
+  /** Attach pre-signed GET URLs to every photo on a list of incidents. */
+  private async attachPhotoUrls(incidents: Incident[]): Promise<Incident[]> {
+    return Promise.all(
+      incidents.map(async (incident) => {
+        const photosWithUrls = await Promise.all(
+          (incident.photos || []).map(async (photo) => ({
+            ...photo,
+            url: await this.s3Service.getSignedDownloadUrl(photo.s3Key),
+          })),
+        );
+        return { ...incident, photos: photosWithUrls };
+      }),
+    );
   }
 
   async findPublicResolved(
@@ -247,22 +266,8 @@ export class IncidentsService {
     }
 
     // Generate short-lived pre-signed GET URLs for photos
-    const photosWithUrls = await Promise.all(
-      (incident.photos || []).map(async (photo) => {
-        const downloadUrl = await this.s3Service.getSignedDownloadUrl(
-          photo.s3Key,
-        );
-        return {
-          ...photo,
-          url: downloadUrl,
-        };
-      }),
-    );
-
-    return {
-      ...incident,
-      photos: photosWithUrls,
-    };
+    const [withUrls] = await this.attachPhotoUrls([incident]);
+    return { ...withUrls } as Incident & { photos: any[] };
   }
 
   async assignAgent(id: string, dto: AssignAgentDto): Promise<Incident> {

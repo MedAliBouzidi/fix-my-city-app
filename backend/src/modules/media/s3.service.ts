@@ -21,7 +21,30 @@ export class S3Service {
       'AWS_S3_BUCKET_NAME',
       'fixmycity-media-storage-production',
     );
-    this.s3Client = new S3Client({ region: this.region });
+
+    // Build S3Client config — supports both EC2 instance roles (AWS) and
+    // explicit credentials (local dev / CI). An optional AWS_ENDPOINT_URL
+    // allows routing to LocalStack or any S3-compatible service locally.
+    const clientConfig: ConstructorParameters<typeof S3Client>[0] = {
+      region: this.region,
+    };
+
+    const endpointUrl = this.configService.get<string>('AWS_ENDPOINT_URL');
+    if (endpointUrl) {
+      clientConfig.endpoint = endpointUrl;
+      clientConfig.forcePathStyle = true; // required for LocalStack / MinIO
+      this.logger.log(`S3 using custom endpoint: ${endpointUrl}`);
+    }
+
+    const accessKeyId = this.configService.get<string>('AWS_ACCESS_KEY_ID');
+    const secretAccessKey = this.configService.get<string>(
+      'AWS_SECRET_ACCESS_KEY',
+    );
+    if (accessKeyId && secretAccessKey) {
+      clientConfig.credentials = { accessKeyId, secretAccessKey };
+    }
+
+    this.s3Client = new S3Client(clientConfig);
   }
 
   async getSignedDownloadUrl(

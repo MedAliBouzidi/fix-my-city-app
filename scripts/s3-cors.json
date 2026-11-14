@@ -1,0 +1,17 @@
+{
+  "CORSRules": [
+    {
+      "ID": "fixmycity-browser-upload",
+      "AllowedOrigins": [
+        "http://localhost:3000",
+        "http://localhost:4000",
+        "https://*.amazonaws.com"
+      ],
+      "AllowedMethods": ["PUT", "GET", "HEAD"],
+      "AllowedHeaders": ["Content-Type", "Content-Length", "Content-MD5"],
+      "ExposeHeaders": ["ETag"],
+      "MaxAgeSeconds": 3600
+    }
+  ]
+}
+
