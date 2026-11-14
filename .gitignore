@@ -36,3 +36,7 @@ Thumbs.db
 *.swp
 *.swo
 *.tsbuildinfo
+
+# Python
+__pycache__/
+*.py[cod]
