@@ -8,7 +8,8 @@ import {
 import { CATEGORY_LABELS } from '../lib/constants';
 import { StatusBadge } from './StatusBadge';
 import { PriorityBadge } from './PriorityBadge';
-import { Calendar, Camera, MapPin } from 'lucide-react';
+import { IncidentPhotoPlaceholder } from './IncidentPhotoPlaceholder';
+import { Calendar, MapPin } from 'lucide-react';
 
 interface IncidentCardProps {
   incident: Incident | IncidentListItem | IncidentPublicResolved;
@@ -59,9 +60,7 @@ export function IncidentCard({
                 className="object-cover transition duration-300 group-hover:scale-105"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-slate-100 text-slate-300 min-h-36">
-                <Camera className="h-10 w-10 stroke-[1.5]" />
-              </div>
+              <IncidentPhotoPlaceholder />
             )}
             <div className="absolute top-2 left-2 sm:hidden">
               <span className="rounded-md bg-slate-900/75 px-2 py-0.5 text-[11px] font-semibold text-white tracking-wider backdrop-blur-xs">

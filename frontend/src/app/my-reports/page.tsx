@@ -15,6 +15,7 @@ import { Spinner } from '../../components/ui/Spinner';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { ErrorState } from '../../components/ui/ErrorState';
 import { Modal } from '../../components/ui/Modal';
+import { IncidentPhotoPlaceholder } from '../../components/IncidentPhotoPlaceholder';
 import {
   Calendar,
   Camera,
@@ -321,9 +322,7 @@ export default function MyReportsPage() {
                         className="object-contain"
                       />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center text-slate-400 text-xs">
-                        Photo URL unavailable
-                      </div>
+                      <IncidentPhotoPlaceholder />
                     )}
                   </div>
 
@@ -339,13 +338,15 @@ export default function MyReportsPage() {
                               : 'border-slate-200 opacity-70 hover:opacity-100'
                           }`}
                         >
-                          {photo.url && (
+                          {photo.url ? (
                             <Image
                               src={photo.url}
                               alt="thumbnail"
                               fill
                               className="object-cover"
                             />
+                          ) : (
+                            <IncidentPhotoPlaceholder />
                           )}
                         </button>
                       ))}

@@ -14,6 +14,7 @@ import {
   isTokenExpired,
   removeStoredToken,
   setStoredToken,
+  setStoredUser,
 } from '../lib/auth';
 import { authApi } from '../lib/api';
 import { ROUTES } from '../lib/constants';
@@ -27,13 +28,14 @@ interface AuthContextType {
   login: (data: LoginFormData) => Promise<UserSummary>;
   register: (data: RegisterFormData) => Promise<UserSummary>;
   logout: () => void;
-  getRoleRedirectPath: (role?: Role) => string;
+  getRoleRedirectPath: (role?: Role | string) => string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function getRoleRedirectPath(role?: Role): string {
-  switch (role) {
+export function getRoleRedirectPath(role?: Role | string): string {
+  const normalized = (role || '').toUpperCase();
+  switch (normalized) {
     case 'ADMIN':
       return ROUTES.ADMIN;
     case 'AGENT':
@@ -85,9 +87,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response = await authApi.login(data);
       const { accessToken, user: apiUser } = response;
 
-      setStoredToken(accessToken);
-      setToken(accessToken);
-
       const resolvedUser: UserSummary = {
         id: apiUser.id,
         email: apiUser.email,
@@ -95,6 +94,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         firstName: apiUser.firstName,
         lastName: apiUser.lastName,
       };
+
+      setStoredToken(accessToken);
+      setStoredUser(resolvedUser);
+      setToken(accessToken);
 
       setUser(resolvedUser);
       return resolvedUser;

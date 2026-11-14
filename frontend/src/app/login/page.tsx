@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
@@ -13,11 +13,17 @@ import { Spinner } from '../../components/ui/Spinner';
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { login, getRoleRedirectPath } = useAuth();
+  const { user, loading, login, getRoleRedirectPath } = useAuth();
 
-  const redirectUrl = searchParams.get('redirect');
   const isExpired = searchParams.get('expired') === '1';
   const isRegistered = searchParams.get('registered') === '1';
+
+  // Automatically redirect already logged-in users to their role-specific page
+  useEffect(() => {
+    if (!loading && user) {
+      router.replace(getRoleRedirectPath(user.role));
+    }
+  }, [user, loading, router, getRoleRedirectPath]);
 
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
@@ -42,9 +48,10 @@ function LoginForm() {
 
     setIsSubmitting(true);
     try {
-      const user = await login(result.data);
-      const destination = redirectUrl || getRoleRedirectPath(user.role);
-      router.push(destination);
+      const loggedInUser = await login(result.data);
+      // Redirect directly to the user's role-specific portal
+      const destination = getRoleRedirectPath(loggedInUser.role);
+      router.replace(destination);
     } catch (err: unknown) {
       if (err instanceof ApiError) {
         if (err.statusCode === 401) {
@@ -61,6 +68,14 @@ function LoginForm() {
       setIsSubmitting(false);
     }
   };
+
+  if (user) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <Spinner size="md" label="Redirecting to your dashboard..." />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center px-4 py-12 sm:px-6 lg:px-8">

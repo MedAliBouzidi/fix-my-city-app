@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
@@ -21,7 +21,14 @@ import { Spinner } from '../../components/ui/Spinner';
 
 function RegisterForm() {
   const router = useRouter();
-  const { register } = useAuth();
+  const { user, loading, register, getRoleRedirectPath } = useAuth();
+
+  // Redirect already logged-in users to their role-specific dashboard
+  useEffect(() => {
+    if (!loading && user) {
+      router.replace(getRoleRedirectPath(user.role));
+    }
+  }, [user, loading, router, getRoleRedirectPath]);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -67,8 +74,8 @@ function RegisterForm() {
 
     setIsSubmitting(true);
     try {
-      await register(result.data);
-      router.push(ROUTES.MY_REPORTS);
+      const newUser = await register(result.data);
+      router.replace(getRoleRedirectPath(newUser.role));
     } catch (err: unknown) {
       if (err instanceof ApiError) {
         if (err.statusCode === 409) {
@@ -87,6 +94,14 @@ function RegisterForm() {
       setIsSubmitting(false);
     }
   };
+
+  if (user) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <Spinner size="md" label="Redirecting to your dashboard..." />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
