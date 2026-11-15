@@ -21,6 +21,7 @@ Examples:
 
 import argparse
 import base64
+import copy
 import os
 import re
 import shutil
@@ -55,8 +56,8 @@ FRONTEND_DIR = ROOT_DIR / "frontend"
 BACKEND_ENV_FILE = BACKEND_DIR / ".env.prod"
 FRONTEND_ENV_FILE = FRONTEND_DIR / ".env.prod"
 
-BACKEND_REPO_NAME = "fixmycity-backend"
-FRONTEND_REPO_NAME = "fixmycity-frontend"
+BACKEND_REPO_NAME = "fixmycity-dev-backend"
+FRONTEND_REPO_NAME = "fixmycity-dev-frontend"
 
 
 def log_info(msg: str) -> None:
@@ -197,6 +198,7 @@ class AWSConfigDiscoverer:
         self._discover_s3()
         self._discover_sns()
         self._discover_alb()
+        self._discover_ecs()
         return self.discovered
 
     def _discover_from_secrets_manager(self) -> None:
@@ -321,6 +323,54 @@ class AWSConfigDiscoverer:
         except Exception as e:
             log_info(f"ALB auto-discovery skipped: {e}")
 
+    def _discover_ecs(self) -> None:
+        """Find ECS Clusters and Task Definition families."""
+        try:
+            ecs = self._client("ecs")
+            # 1. Discover active task definition families
+            families = ecs.list_task_definition_families(status="ACTIVE").get("families", [])
+            for fam in families:
+                fam_lower = fam.lower()
+                if "fixmycity" in fam_lower:
+                    if "backend" in fam_lower and "ECS_BACKEND_TASK_DEF" not in self.discovered:
+                        self.discovered["ECS_BACKEND_TASK_DEF"] = fam
+                        log_success(f"Discovered ECS Backend Task Definition: {fam}")
+                    elif "frontend" in fam_lower and "ECS_FRONTEND_TASK_DEF" not in self.discovered:
+                        self.discovered["ECS_FRONTEND_TASK_DEF"] = fam
+                        log_success(f"Discovered ECS Frontend Task Definition: {fam}")
+                    elif "ECS_TASK_DEF" not in self.discovered:
+                        self.discovered["ECS_TASK_DEF"] = fam
+                        log_success(f"Discovered ECS Combined Task Definition: {fam}")
+
+            # 2. Discover cluster and active services
+            clusters = ecs.list_clusters().get("clusterArns", [])
+            for c_arn in clusters:
+                c_name = c_arn.split("/")[-1]
+                if "fixmycity" in c_name.lower():
+                    self.discovered["ECS_CLUSTER"] = c_name
+                    log_success(f"Discovered ECS Cluster: {c_name}")
+
+                    # Auto-discover services running in this cluster
+                    try:
+                        svc_arns = ecs.list_services(cluster=c_name).get("serviceArns", [])
+                        for s_arn in svc_arns:
+                            s_name = s_arn.split("/")[-1]
+                            s_lower = s_name.lower()
+                            if "backend" in s_lower and "ECS_BACKEND_SERVICE" not in self.discovered:
+                                self.discovered["ECS_BACKEND_SERVICE"] = s_name
+                                log_success(f"Discovered ECS Backend Service: {s_name}")
+                            elif "frontend" in s_lower and "ECS_FRONTEND_SERVICE" not in self.discovered:
+                                self.discovered["ECS_FRONTEND_SERVICE"] = s_name
+                                log_success(f"Discovered ECS Frontend Service: {s_name}")
+                            elif "ECS_SERVICE" not in self.discovered:
+                                self.discovered["ECS_SERVICE"] = s_name
+                                log_success(f"Discovered ECS Service: {s_name}")
+                    except Exception as svc_err:
+                        log_info(f"Could not list services in cluster '{c_name}': {svc_err}")
+                    break
+        except Exception as e:
+            log_info(f"ECS auto-discovery skipped: {e}")
+
 
 def ensure_ecr_repository(ecr_client: Any, repo_name: str) -> str:
     """Ensure ECR repository exists and return its repository URI."""
@@ -390,6 +440,233 @@ def run_command(cmd: list, cwd: Optional[Path] = None, env: Optional[Dict[str, s
         sys.exit(proc.returncode)
 
 
+VALID_TASK_DEF_KEYS = {
+    "family",
+    "taskRoleArn",
+    "executionRoleArn",
+    "networkMode",
+    "containerDefinitions",
+    "volumes",
+    "placementConstraints",
+    "requiresCompatibilities",
+    "cpu",
+    "memory",
+    "tags",
+    "pidMode",
+    "ipcMode",
+    "proxyConfiguration",
+    "inferenceAccelerators",
+    "ephemeralStorage",
+    "runtimePlatform",
+}
+
+
+def update_ecs_task_definition(
+    ecs_client: Any,
+    task_def_name_or_arn: str,
+    image_updates: Dict[str, str],
+    env_updates: Optional[Dict[str, str]] = None,
+) -> Optional[Dict[str, Any]]:
+    """
+    Fetches the latest active ECS task definition revision, updates container image(s),
+    clears obsolete placeholder command overrides, merges environment variables,
+    and registers a new revision.
+
+    :param ecs_client: boto3 ECS client
+    :param task_def_name_or_arn: Task definition family name or full ARN
+    :param image_updates: Mapping of container names or role patterns to new ECR image URI
+                          e.g. {"backend": "123.dkr...:1.0.0", "frontend": "123.dkr...:1.0.0"}
+    :param env_updates: Optional dictionary of environment variables to inject
+    :return: The newly registered task definition dictionary or None on failure.
+    """
+    try:
+        log_info(f"Fetching task definition '{task_def_name_or_arn}'...")
+        resp = ecs_client.describe_task_definition(taskDefinition=task_def_name_or_arn)
+        task_def = resp["taskDefinition"]
+    except ClientError as e:
+        code = e.response.get("Error", {}).get("Code", "")
+        log_warning(f"Could not describe task definition '{task_def_name_or_arn}': {code or e}")
+        return None
+    except Exception as e:
+        log_warning(f"Error fetching task definition '{task_def_name_or_arn}': {e}")
+        return None
+
+    container_defs = copy.deepcopy(task_def.get("containerDefinitions", []))
+    updated_containers = []
+
+    for container in container_defs:
+        c_name = container.get("name", "")
+        old_image = container.get("image", "")
+        new_image = None
+
+        # 1. Exact match by container name
+        if c_name in image_updates:
+            new_image = image_updates[c_name]
+        else:
+            # 2. Match by role keyword (e.g. 'backend' or 'frontend')
+            for role, img_uri in image_updates.items():
+                if role.lower() in c_name.lower():
+                    new_image = img_uri
+                    break
+
+        # 3. Fallback: single container definition with single image update
+        if not new_image and len(container_defs) == 1 and len(image_updates) == 1:
+            new_image = list(image_updates.values())[0]
+
+        if new_image:
+            container["image"] = new_image
+            updated_containers.append((c_name, old_image, new_image))
+
+            # Automatically remove obsolete Apache placeholder command overrides
+            cmd = container.get("command", [])
+            if cmd and any(
+                kw in " ".join(str(x) for x in cmd).lower()
+                for kw in ["apache2", "httpd", "sed"]
+            ):
+                log_info(
+                    f"Removing obsolete placeholder command override from container '{c_name}': {cmd}"
+                )
+                container.pop("command", None)
+
+            entrypoint = container.get("entryPoint", [])
+            if entrypoint and any(
+                kw in " ".join(str(x) for x in entrypoint).lower()
+                for kw in ["apache2", "httpd"]
+            ):
+                log_info(
+                    f"Removing obsolete placeholder entryPoint override from container '{c_name}': {entrypoint}"
+                )
+                container.pop("entryPoint", None)
+
+            # Merge environment variables if provided
+            if env_updates:
+                env_list = container.get("environment", [])
+                env_map = {item["name"]: item for item in env_list}
+                for k, v in env_updates.items():
+                    if v:
+                        env_map[k] = {"name": k, "value": str(v)}
+                container["environment"] = list(env_map.values())
+
+    if not updated_containers:
+        log_warning(
+            f"No matching container definitions found in task definition '{task_def_name_or_arn}' "
+            f"for updates: {list(image_updates.keys())}"
+        )
+        return None
+
+    print(f"\n{BOLD}{CYAN}Updating Container Definitions for '{task_def_name_or_arn}':{NC}")
+    for c_name, old_img, new_img in updated_containers:
+        print(f"  Container: {BOLD}{c_name}{NC}")
+        print(f"    Current Image: {old_img}")
+        print(f"    Target Image:  {GREEN}{new_img}{NC}")
+
+    # Sanitize dictionary for register_task_definition (strip read-only attributes)
+    register_payload = {
+        k: v for k, v in task_def.items() if k in VALID_TASK_DEF_KEYS and v is not None
+    }
+    register_payload["containerDefinitions"] = container_defs
+
+    try:
+        reg_resp = ecs_client.register_task_definition(**register_payload)
+        new_task_def = reg_resp["taskDefinition"]
+        family = new_task_def["family"]
+        revision = new_task_def["revision"]
+        arn = new_task_def["taskDefinitionArn"]
+        log_success(f"Registered new ECS task definition revision: {BOLD}{family}:{revision}{NC}")
+        log_info(f"Task Definition ARN: {arn}")
+        return new_task_def
+    except ClientError as e:
+        log_error(f"Failed to register task definition revision for '{task_def_name_or_arn}': {e}")
+        return None
+    except Exception as e:
+        log_error(f"Unexpected error registering task definition: {e}")
+        return None
+
+
+def resolve_service_name(
+    ecs_client: Any,
+    cluster: str,
+    preferred_name: str,
+    role: str = "",
+) -> str:
+    """
+    Resolves the actual active ECS service name in the cluster.
+    Matches preferred_name, candidate suffixes (e.g. -service), or keyword.
+    """
+    try:
+        service_arns = ecs_client.list_services(cluster=cluster).get("serviceArns", [])
+        active_services = [s.split("/")[-1] for s in service_arns]
+        if not active_services:
+            return preferred_name
+
+        # 1. Exact match
+        if preferred_name in active_services:
+            return preferred_name
+
+        # 2. Match with/without -service suffix
+        candidates = [
+            preferred_name,
+            f"{preferred_name}-service",
+            preferred_name.replace("-service", ""),
+        ]
+        for cand in candidates:
+            if cand in active_services:
+                return cand
+
+        # 3. Match by role keyword (e.g. 'backend' or 'frontend')
+        if role:
+            for s in active_services:
+                if role.lower() in s.lower():
+                    return s
+
+        return preferred_name
+    except Exception:
+        return preferred_name
+
+
+def update_ecs_service(
+    ecs_client: Any,
+    cluster: str,
+    service_name: str,
+    task_def_arn: str,
+    wait: bool = False,
+) -> bool:
+    """Updates an ECS Service to deploy the newly registered task definition revision."""
+    short_task_def = task_def_arn.split("/")[-1]
+    try:
+        log_info(f"Deploying new revision to ECS Service '{BOLD}{service_name}{NC}' on cluster '{cluster}'...")
+        ecs_client.update_service(
+            cluster=cluster,
+            service=service_name,
+            taskDefinition=task_def_arn,
+            forceNewDeployment=True,
+        )
+        log_success(f"ECS Service '{service_name}' updated! Deployment initiated with {BOLD}{short_task_def}{NC}.")
+
+        if wait:
+            log_info(f"Waiting for ECS Service '{service_name}' to reach steady state...")
+            waiter = ecs_client.get_waiter("services_stable")
+            waiter.wait(cluster=cluster, services=[service_name])
+            log_success(f"ECS Service '{service_name}' reached steady state successfully!")
+
+        return True
+    except ClientError as e:
+        code = e.response.get("Error", {}).get("Code", "")
+        if code == "ServiceNotFoundException":
+            log_warning(
+                f"ECS Service '{service_name}' not found on cluster '{cluster}'. "
+                f"Skipping service update. (New Task Definition {short_task_def} is registered and ready to use)."
+            )
+        elif code == "ClusterNotFoundException":
+            log_warning(f"ECS Cluster '{cluster}' not found. Skipping service update.")
+        else:
+            log_warning(f"Could not update ECS service '{service_name}' on cluster '{cluster}': {code or e}")
+        return False
+    except Exception as e:
+        log_warning(f"Unexpected error updating ECS service '{service_name}': {e}")
+        return False
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="FixMyCity AWS Variable Retrieval & ECR Deployment Tool",
@@ -408,6 +685,19 @@ def main() -> None:
     parser.add_argument("--frontend-only", action="store_true", help="Build and push frontend image only")
     parser.add_argument("--no-cache", action="store_true", help="Build images without using cache")
     parser.add_argument("--dry-run", action="store_true", help="Retrieve variables and update .env files without building or pushing")
+
+    # ECS Task Definition & Service Deployment Options
+    parser.add_argument("--ecs-task-def", help="Combined ECS Task Definition family or ARN (when both containers share one task def)")
+    parser.add_argument("--ecs-backend-task-def", help=f"ECS Task Definition family/ARN for backend (default: auto-discover or {BACKEND_REPO_NAME})")
+    parser.add_argument("--ecs-frontend-task-def", help=f"ECS Task Definition family/ARN for frontend (default: auto-discover or {FRONTEND_REPO_NAME})")
+    parser.add_argument("--ecs-cluster", help="ECS Cluster name (default: auto-discover from active clusters)")
+    parser.add_argument("--ecs-service", help="Combined/single ECS Service name to update")
+    parser.add_argument("--ecs-backend-service", help=f"ECS Service name for backend (default: auto-discover or {BACKEND_REPO_NAME}-service)")
+    parser.add_argument("--ecs-frontend-service", help=f"ECS Service name for frontend (default: auto-discover or {FRONTEND_REPO_NAME}-service)")
+    parser.add_argument("--skip-service-update", action="store_true", help="Skip deploying to ECS services (only register new task definitions)")
+    parser.add_argument("--ecs-image-tag", choices=["version", "latest"], default="version", help="Image tag to inject into task definition: version (pinned) or latest")
+    parser.add_argument("--skip-ecs-update", action="store_true", help="Skip updating ECS Task Definition and services after image push")
+    parser.add_argument("--wait-for-service", action="store_true", help="Wait for ECS services to reach steady state after deployment update")
 
     args = parser.parse_args()
 
@@ -524,6 +814,32 @@ def main() -> None:
     write_env_file(FRONTEND_ENV_FILE, frontend_payload)
 
     if args.dry_run:
+        print(f"\n{BOLD}{CYAN}── ECS Task Definition & Service Targets (Dry Run) ──{NC}")
+        if args.skip_ecs_update:
+            print(f"  ECS Update:                {YELLOW}Disabled (--skip-ecs-update){NC}")
+        else:
+            cluster = args.ecs_cluster or aws_vars.get("ECS_CLUSTER") or "(auto-discover)"
+            print(f"  Target ECS Cluster:        {BOLD}{cluster}{NC}")
+            if args.ecs_task_def:
+                print(f"  Combined Task Def:         {BOLD}{args.ecs_task_def}{NC}")
+                svc = args.ecs_service or args.ecs_task_def
+                print(f"  Target ECS Service:        {BOLD}{svc}{NC}")
+            else:
+                b_td = args.ecs_backend_task_def or aws_vars.get("ECS_BACKEND_TASK_DEF") or BACKEND_REPO_NAME
+                f_td = args.ecs_frontend_task_def or aws_vars.get("ECS_FRONTEND_TASK_DEF") or FRONTEND_REPO_NAME
+                b_svc = args.ecs_backend_service or aws_vars.get("ECS_BACKEND_SERVICE") or f"{b_td}-service"
+                f_svc = args.ecs_frontend_service or aws_vars.get("ECS_FRONTEND_SERVICE") or f"{f_td}-service"
+                print(f"  Backend Task Definition:   {BOLD}{b_td}{NC} → Target Service: {BOLD}{b_svc}{NC}")
+                print(f"  Frontend Task Definition:  {BOLD}{f_td}{NC} → Target Service: {BOLD}{f_svc}{NC}")
+
+            deploy_status = (
+                f"{YELLOW}Disabled (--skip-service-update){NC}"
+                if args.skip_service_update
+                else f"{GREEN}Enabled (Rolling deployment to cluster){NC}"
+            )
+            print(f"  Service Deployment:        {deploy_status}")
+            print(f"  Task Def Image Tag:        {BOLD}{args.ecs_image_tag}{NC}")
+            print(f"  Wait For Steady State:     {BOLD}{'Yes (--wait-for-service)' if args.wait_for_service else 'No (asynchronous)'}{NC}")
         print(f"\n{GREEN}{BOLD}✓ Dry run complete. Environment files prepared successfully.{NC}\n")
         return
 
@@ -541,6 +857,8 @@ def main() -> None:
     build_frontend = not args.backend_only
 
     deployed_images = []
+    backend_deployed_uri = None
+    frontend_deployed_uri = None
 
     # 7. Build, Tag & Push Backend
     if build_backend:
@@ -548,6 +866,7 @@ def main() -> None:
         repo_uri = ensure_ecr_repository(ecr, BACKEND_REPO_NAME)
         tag_version = f"{repo_uri}:{args.version}"
         tag_latest = f"{repo_uri}:latest"
+        backend_deployed_uri = tag_latest if args.ecs_image_tag == "latest" else tag_version
 
         build_cmd = [cli, "build", "-t", BACKEND_REPO_NAME, "-t", tag_version, "-t", tag_latest]
         if args.no_cache:
@@ -571,6 +890,7 @@ def main() -> None:
         repo_uri = ensure_ecr_repository(ecr, FRONTEND_REPO_NAME)
         tag_version = f"{repo_uri}:{args.version}"
         tag_latest = f"{repo_uri}:latest"
+        frontend_deployed_uri = tag_latest if args.ecs_image_tag == "latest" else tag_version
 
         build_cmd = [
             cli,
@@ -599,16 +919,155 @@ def main() -> None:
         deployed_images.append(tag_version)
         deployed_images.append(tag_latest)
 
-    # 9. Summary
+    # 9. Update ECS Task Definition(s) with new ECR image URI(s)
+    registered_revisions = []
+    service_deploy_queue = []
+
+    if not args.skip_ecs_update and (backend_deployed_uri or frontend_deployed_uri):
+        print(f"\n{BOLD}{YELLOW}[ECS DEPLOYMENT] Updating Task Definitions with New ECR Image URIs...{NC}")
+        ecs = session.client("ecs", **client_kwargs)
+
+        # Case A: Combined task definition specified
+        if args.ecs_task_def:
+            img_map = {}
+            if backend_deployed_uri:
+                img_map["backend"] = backend_deployed_uri
+                img_map[BACKEND_REPO_NAME] = backend_deployed_uri
+            if frontend_deployed_uri:
+                img_map["frontend"] = frontend_deployed_uri
+                img_map[FRONTEND_REPO_NAME] = frontend_deployed_uri
+
+            res = update_ecs_task_definition(ecs, args.ecs_task_def, img_map)
+            if res:
+                registered_revisions.append(res)
+                target_svc = args.ecs_service or args.ecs_task_def
+                service_deploy_queue.append({
+                    "role": "combined",
+                    "service_name": target_svc,
+                    "task_def_arn": res["taskDefinitionArn"],
+                })
+
+        # Case B: Separate task definitions (Backend and/or Frontend)
+        else:
+            if backend_deployed_uri:
+                backend_task_def = (
+                    args.ecs_backend_task_def
+                    or aws_vars.get("ECS_BACKEND_TASK_DEF")
+                    or BACKEND_REPO_NAME
+                )
+                backend_env_updates = {
+                    "PORT": "4000",
+                    "NODE_ENV": "production",
+                    "AWS_REGION": args.region,
+                    "AWS_S3_BUCKET_NAME": s3_bucket,
+                    "AWS_SNS_TOPIC_ARN": sns_arn,
+                    "AWS_ALB_DNS_NAME": alb_dns,
+                    "CORS_ORIGIN": cors_origin,
+                    "JWT_SECRET": jwt_secret,
+                }
+                res_b = update_ecs_task_definition(
+                    ecs,
+                    backend_task_def,
+                    {"backend": backend_deployed_uri, BACKEND_REPO_NAME: backend_deployed_uri},
+                    env_updates=backend_env_updates,
+                )
+                if res_b:
+                    registered_revisions.append(res_b)
+                    target_b_svc = (
+                        args.ecs_backend_service
+                        or aws_vars.get("ECS_BACKEND_SERVICE")
+                        or f"{backend_task_def}-service"
+                    )
+                    service_deploy_queue.append({
+                        "role": "backend",
+                        "service_name": target_b_svc,
+                        "task_def_arn": res_b["taskDefinitionArn"],
+                    })
+
+            if frontend_deployed_uri:
+                frontend_task_def = (
+                    args.ecs_frontend_task_def
+                    or aws_vars.get("ECS_FRONTEND_TASK_DEF")
+                    or FRONTEND_REPO_NAME
+                )
+                frontend_env_updates = {
+                    "PORT": "3000",
+                    "NODE_ENV": "production",
+                    "NEXT_PUBLIC_API_URL": api_url,
+                }
+                res_f = update_ecs_task_definition(
+                    ecs,
+                    frontend_task_def,
+                    {"frontend": frontend_deployed_uri, FRONTEND_REPO_NAME: frontend_deployed_uri},
+                    env_updates=frontend_env_updates,
+                )
+                if res_f:
+                    registered_revisions.append(res_f)
+                    target_f_svc = (
+                        args.ecs_frontend_service
+                        or aws_vars.get("ECS_FRONTEND_SERVICE")
+                        or f"{frontend_task_def}-service"
+                    )
+                    service_deploy_queue.append({
+                        "role": "frontend",
+                        "service_name": target_f_svc,
+                        "task_def_arn": res_f["taskDefinitionArn"],
+                    })
+
+    # 10. Update ECS Services to deploy the new task definition revisions
+    updated_services = []
+    if not args.skip_service_update and not args.skip_ecs_update and service_deploy_queue:
+        cluster = args.ecs_cluster or aws_vars.get("ECS_CLUSTER")
+        if cluster:
+            print(f"\n{BOLD}{YELLOW}[ECS SERVICE DEPLOYMENT] Deploying updated revisions to cluster '{cluster}'...{NC}")
+            for item in service_deploy_queue:
+                raw_name = item["service_name"]
+                td_arn = item["task_def_arn"]
+                resolved_name = resolve_service_name(ecs, cluster, raw_name, role=item["role"])
+                ok = update_ecs_service(
+                    ecs,
+                    cluster,
+                    resolved_name,
+                    td_arn,
+                    wait=args.wait_for_service,
+                )
+                if ok:
+                    updated_services.append((resolved_name, td_arn.split("/")[-1]))
+        else:
+            log_warning("ECS cluster not specified or discovered. Skipping service deployment.")
+
+    # 11. Summary
     print(f"\n{BLUE}{BOLD}================================================================{NC}")
-    print(f"{GREEN}{BOLD}   Deployment to Amazon ECR Completed Successfully!             {NC}")
+    print(f"{GREEN}{BOLD}   Deployment Completed Successfully!                           {NC}")
     print(f"{BLUE}{BOLD}================================================================{NC}")
     print("Pushed Images:")
     for img in deployed_images:
         print(f"  • {BOLD}{img}{NC}")
-    print("\nNext Steps:")
-    print("  • Update ECS Task Definition or Kubernetes Deployment with the ECR image URI.")
-    print(f"  • Verify health check at: {api_url}/health")
+
+    print("\nRegistered ECS Task Definition Revisions:")
+    if registered_revisions:
+        for td in registered_revisions:
+            print(f"  • {BOLD}{td['family']}:{td['revision']}{NC} ({td['taskDefinitionArn']})")
+    elif args.skip_ecs_update:
+        print("  • (ECS task definition update skipped via --skip-ecs-update)")
+    else:
+        print("  • (No task definitions updated)")
+
+    print("\nUpdated ECS Services (Rolling Deployment):")
+    if updated_services:
+        for svc, td in updated_services:
+            print(f"  • {BOLD}{svc}{NC} → deployed {GREEN}{td}{NC}")
+    elif args.skip_service_update:
+        print("  • (ECS service update skipped via --skip-service-update)")
+    else:
+        print("  • (No services updated)")
+
+    print("\nVerification & Health:")
+    print(f"  • Health Check URL: {api_url}/health")
+    print(f"{BLUE}{BOLD}================================================================{NC}\n")
+
+    print("\nVerification & Health:")
+    print(f"  • Health Check URL: {api_url}/health")
     print(f"{BLUE}{BOLD}================================================================{NC}\n")
 
 
