@@ -1,0 +1,22 @@
+═══════════════════════════════════════════════════════════════════════════════════
+                    TARGET HIGH-DENSITY CLUSTER DETAILS
+═══════════════════════════════════════════════════════════════════════════════════
+Primary Incident Code : INC-ROADS-001 (Report #1001 upon database seed insertion)
+Cluster Tracking Code : INC-ROADS-001-CLUSTER
+Category              : ROADS
+Street Address        : Avenue Habib Bourguiba, Ariana
+Coordinates           : 36.8668000 N, 10.1652000 E
+Primary Photo Asset   : scripts/seed_assets/roads/pexels-introspectivedsgn-5688465.jpg
+Seed Reports Count    : 9 reports (Ready to trigger on 10th report)
+───────────────────────────────────────────────────────────────────────────────────
+List of Seeded Reports for this Incident:
+  1. INC-ROADS-001-R01 | Reporter: medali.bouzidi@fixmycity.local | Status: VALIDATED
+  2. INC-ROADS-001-R02 | Reporter: sarra.mejaouel@fixmycity.local | Status: RECEIVED
+  3. INC-ROADS-001-R03 | Reporter: imen.benamor@fixmycity.local   | Status: RECEIVED
+  4. INC-ROADS-001-R04 | Reporter: salma.kochtben@fixmycity.local | Status: RECEIVED
+  5. INC-ROADS-001-R05 | Reporter: citizen@fixmycity.local        | Status: RECEIVED
+  6. INC-ROADS-001-R06 | Reporter: amine.khelifi@fixmycity.local  | Status: RECEIVED
+  7. INC-ROADS-001-R07 | Reporter: yassine.mansouri@fixmycity.local| Status: RECEIVED
+  8. INC-ROADS-001-R08 | Reporter: nour.driss@fixmycity.local     | Status: RECEIVED
+  9. INC-ROADS-001-R09 | Reporter: khalil.ayari@fixmycity.local   | Status: RECEIVED
+═══════════════════════════════════════════════════════════════════════════════════

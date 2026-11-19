@@ -1,0 +1,1058 @@
+{
+  "city": {
+    "name": "Ariana",
+    "country": "Tunisia",
+    "center": {
+      "latitude": 36.8625,
+      "longitude": 10.1956
+    },
+    "timezone": "Africa/Tunis",
+    "areas": [
+      {
+        "name": "Ariana Ville",
+        "latitude": 36.8665,
+        "longitude": 10.1647
+      },
+      {
+        "name": "Ennasr 2",
+        "latitude": 36.865,
+        "longitude": 10.16
+      },
+      {
+        "name": "Menzah 6",
+        "latitude": 36.842,
+        "longitude": 10.175
+      },
+      {
+        "name": "Cité Ghazela",
+        "latitude": 36.896,
+        "longitude": 10.19
+      },
+      {
+        "name": "La Soukra",
+        "latitude": 36.87,
+        "longitude": 10.24
+      }
+    ],
+    "streets": [
+      "Avenue Habib Bourguiba, Ariana",
+      "Avenue de la République, Ariana",
+      "Avenue de l'Environnement, Ennasr 2",
+      "Avenue Hédi Nouira, Ennasr 2",
+      "Avenue Ibn Khaldoun, Menzah 6",
+      "Rue Taieb Mhiri, Menzah 6",
+      "Route de la Soukra, La Soukra",
+      "Avenue de l'Indépendance, Cité Ghazela"
+    ]
+  },
+  "enums": {
+    "status": [
+      "RECEIVED",
+      "PENDING_VALIDATION",
+      "VALIDATED",
+      "REJECTED",
+      "ASSIGNED",
+      "IN_PROGRESS",
+      "RESOLVED"
+    ],
+    "priority": [
+      "LOW",
+      "MEDIUM",
+      "HIGH",
+      "CRITICAL"
+    ],
+    "category": [
+      "ROADS",
+      "LIGHTING",
+      "WATER",
+      "WASTE",
+      "GREENERY",
+      "OTHER"
+    ],
+    "role": [
+      "CITIZEN",
+      "ADMIN",
+      "AGENT",
+      "TECHNICIAN"
+    ]
+  },
+  "users": [
+    {
+      "firstName": "System",
+      "lastName": "Admin",
+      "email": "admin@fixmycity.local",
+      "role": "ADMIN",
+      "password": "password"
+    },
+    {
+      "firstName": "Nada",
+      "lastName": "Ben Romdhane",
+      "email": "agent@fixmycity.local",
+      "role": "AGENT",
+      "password": "password",
+      "department": "Street Lighting & Utilities Desk"
+    },
+    {
+      "firstName": "Karim",
+      "lastName": "Jlassi",
+      "email": "k.jlassi@ariana.gov.example",
+      "role": "AGENT",
+      "password": "password",
+      "department": "Sanitation & Environment Desk"
+    },
+    {
+      "firstName": "Imen",
+      "lastName": "Chaabane",
+      "email": "i.chaabane@ariana.gov.example",
+      "role": "AGENT",
+      "password": "password",
+      "department": "Street Lighting & Utilities Desk"
+    },
+    {
+      "firstName": "Sana",
+      "lastName": "Ben Romdhane",
+      "email": "s.benromdhane@ariana.gov.example",
+      "role": "AGENT",
+      "password": "password",
+      "department": "Public Works Dispatcher"
+    },
+    {
+      "firstName": "Hichem",
+      "lastName": "Gharbi",
+      "email": "technician@fixmycity.local",
+      "role": "TECHNICIAN",
+      "password": "password",
+      "specialty": "ROAD_REPAIR",
+      "title": "Road Crew Lead"
+    },
+    {
+      "firstName": "Slim",
+      "lastName": "Mejri",
+      "email": "s.mejri@ariana.gov.example",
+      "role": "TECHNICIAN",
+      "password": "password",
+      "specialty": "ELECTRICAL",
+      "title": "Master Electrician (Street Lighting)"
+    },
+    {
+      "firstName": "Walid",
+      "lastName": "Trabelsi",
+      "email": "w.trabelsi@ariana.gov.example",
+      "role": "TECHNICIAN",
+      "password": "password",
+      "specialty": "PLUMBING",
+      "title": "Water Network Plumber"
+    },
+    {
+      "firstName": "Mourad",
+      "lastName": "Haddad",
+      "email": "m.haddad@ariana.gov.example",
+      "role": "TECHNICIAN",
+      "password": "password",
+      "specialty": "SANITATION",
+      "title": "Waste Collection Supervisor"
+    },
+    {
+      "firstName": "Mohamed Ali",
+      "lastName": "Bouzidi",
+      "email": "medali.bouzidi@fixmycity.local",
+      "role": "CITIZEN",
+      "password": "password",
+      "phone": "+216 22 345 678"
+    },
+    {
+      "firstName": "Sarra",
+      "lastName": "Mejaouel",
+      "email": "sarra.mejaouel@fixmycity.local",
+      "role": "CITIZEN",
+      "password": "password",
+      "phone": "+216 98 112 340"
+    },
+    {
+      "firstName": "Imen",
+      "lastName": "Ben Amor",
+      "email": "imen.benamor@fixmycity.local",
+      "role": "CITIZEN",
+      "password": "password",
+      "phone": "+216 55 901 223"
+    },
+    {
+      "firstName": "Salma",
+      "lastName": "Kochtben",
+      "email": "salma.kochtben@fixmycity.local",
+      "role": "CITIZEN",
+      "password": "password",
+      "phone": "+216 29 774 105"
+    },
+    {
+      "firstName": "Mohamed",
+      "lastName": "Ali",
+      "email": "citizen@fixmycity.local",
+      "role": "CITIZEN",
+      "password": "password",
+      "phone": "+216 20 100 200"
+    },
+    {
+      "firstName": "Amine",
+      "lastName": "Khelifi",
+      "email": "amine.khelifi@fixmycity.local",
+      "role": "CITIZEN",
+      "password": "password",
+      "phone": "+216 21 889 001"
+    },
+    {
+      "firstName": "Yassine",
+      "lastName": "Mansouri",
+      "email": "yassine.mansouri@fixmycity.local",
+      "role": "CITIZEN",
+      "password": "password",
+      "phone": "+216 97 456 123"
+    },
+    {
+      "firstName": "Nour",
+      "lastName": "Driss",
+      "email": "nour.driss@fixmycity.local",
+      "role": "CITIZEN",
+      "password": "password",
+      "phone": "+216 52 334 556"
+    },
+    {
+      "firstName": "Khalil",
+      "lastName": "Ayari",
+      "email": "khalil.ayari@fixmycity.local",
+      "role": "CITIZEN",
+      "password": "password",
+      "phone": "+216 23 789 654"
+    },
+    {
+      "firstName": "Mouna",
+      "lastName": "Triki",
+      "email": "mouna.triki@fixmycity.local",
+      "role": "CITIZEN",
+      "password": "password",
+      "phone": "+216 94 654 321"
+    },
+    {
+      "firstName": "Anis",
+      "lastName": "Ben Youssef",
+      "email": "anis.benyoussef@fixmycity.local",
+      "role": "CITIZEN",
+      "password": "password",
+      "phone": "+216 50 112 998"
+    },
+    {
+      "firstName": "Leila",
+      "lastName": "Chebbi",
+      "email": "leila.chebbi@fixmycity.local",
+      "role": "CITIZEN",
+      "password": "password",
+      "phone": "+216 26 443 210"
+    }
+  ],
+  "incidents": [
+    {
+      "code": "INC-ROADS-001-R01",
+      "isPrimaryClusterTarget": true,
+      "clusterTargetCode": "INC-ROADS-001",
+      "reportIndexInCluster": 1,
+      "title": "Critical deep road crater damaging vehicle axles near pharmacy",
+      "description": "Deep pothole in the right lane near the pharmacy on Avenue Habib Bourguiba. Two cars already punctured their tires and bent rims this morning.",
+      "category": "ROADS",
+      "status": "VALIDATED",
+      "priority": "HIGH",
+      "streetAddress": "Avenue Habib Bourguiba, Ariana",
+      "latitude": 36.8668,
+      "longitude": 10.1652,
+      "reporterEmail": "medali.bouzidi@fixmycity.local",
+      "assignedAgentEmail": "s.benromdhane@ariana.gov.example",
+      "assignedTechnicianEmail": "technician@fixmycity.local",
+      "createdAt": "2026-11-03T07:42:00Z",
+      "image": {
+        "path": "roads/pexels-introspectivedsgn-5688465.jpg",
+        "fileName": "habib-bourguiba-pothole.jpg",
+        "mimeType": "image/jpeg"
+      },
+      "notes": [
+        {
+          "authorEmail": "medali.bouzidi@fixmycity.local",
+          "content": "Deep pothole in the right lane near the pharmacy. Two cars already damaged.",
+          "createdAt": "2026-11-03T07:42:00Z"
+        },
+        {
+          "authorEmail": "s.benromdhane@ariana.gov.example",
+          "content": "Confirmed via citizen photo. Approx 60 cm wide, 14 cm deep. High danger for two-wheelers and passenger cars.",
+          "createdAt": "2026-11-03T09:10:00Z"
+        }
+      ]
+    },
+    {
+      "code": "INC-ROADS-001-R02",
+      "isPrimaryClusterTarget": false,
+      "clusterTargetCode": "INC-ROADS-001",
+      "reportIndexInCluster": 2,
+      "title": "Severe pothole hazard near pharmacy",
+      "description": "Re-reporting the dangerous asphalt crater on Habib Bourguiba in front of the pharmacy. It is expanding quickly due to passing buses.",
+      "category": "ROADS",
+      "status": "RECEIVED",
+      "priority": "HIGH",
+      "streetAddress": "Avenue Habib Bourguiba, Ariana",
+      "latitude": 36.8668,
+      "longitude": 10.1652,
+      "reporterEmail": "sarra.mejaouel@fixmycity.local",
+      "assignedAgentEmail": null,
+      "assignedTechnicianEmail": null,
+      "createdAt": "2026-11-03T08:15:00Z",
+      "image": {
+        "path": "roads/pexels-introspectivedsgn-5688465.jpg",
+        "fileName": "habib-bourguiba-pothole.jpg",
+        "mimeType": "image/jpeg"
+      },
+      "notes": [
+        {
+          "authorEmail": "sarra.mejaouel@fixmycity.local",
+          "content": "Very dangerous crater, buses swerving into incoming traffic to avoid it.",
+          "createdAt": "2026-11-03T08:15:00Z"
+        }
+      ]
+    },
+    {
+      "code": "INC-ROADS-001-R03",
+      "isPrimaryClusterTarget": false,
+      "clusterTargetCode": "INC-ROADS-001",
+      "reportIndexInCluster": 3,
+      "title": "Deep pothole causing emergency braking",
+      "description": "Dangerous pothole right before the traffic light near the pharmacy on Avenue Habib Bourguiba. Drivers are slamming on brakes suddenly.",
+      "category": "ROADS",
+      "status": "RECEIVED",
+      "priority": "HIGH",
+      "streetAddress": "Avenue Habib Bourguiba, Ariana",
+      "latitude": 36.8668,
+      "longitude": 10.1652,
+      "reporterEmail": "imen.benamor@fixmycity.local",
+      "assignedAgentEmail": null,
+      "assignedTechnicianEmail": null,
+      "createdAt": "2026-11-03T09:00:00Z",
+      "image": {
+        "path": "roads/pexels-introspectivedsgn-5688465.jpg",
+        "fileName": "habib-bourguiba-pothole.jpg",
+        "mimeType": "image/jpeg"
+      },
+      "notes": [
+        {
+          "authorEmail": "imen.benamor@fixmycity.local",
+          "content": "Almost witnessed a rear-end collision because of cars stopping abruptly.",
+          "createdAt": "2026-11-03T09:00:00Z"
+        }
+      ]
+    },
+    {
+      "code": "INC-ROADS-001-R04",
+      "isPrimaryClusterTarget": false,
+      "clusterTargetCode": "INC-ROADS-001",
+      "reportIndexInCluster": 4,
+      "title": "Hazardous road crater on Avenue Habib Bourguiba",
+      "description": "Pothole depth is at least 15 cm. Multiple motorcycles had near misses this morning trying to navigate around it.",
+      "category": "ROADS",
+      "status": "RECEIVED",
+      "priority": "HIGH",
+      "streetAddress": "Avenue Habib Bourguiba, Ariana",
+      "latitude": 36.8668,
+      "longitude": 10.1652,
+      "reporterEmail": "salma.kochtben@fixmycity.local",
+      "assignedAgentEmail": null,
+      "assignedTechnicianEmail": null,
+      "createdAt": "2026-11-03T10:30:00Z",
+      "image": {
+        "path": "roads/pexels-introspectivedsgn-5688465.jpg",
+        "fileName": "habib-bourguiba-pothole.jpg",
+        "mimeType": "image/jpeg"
+      },
+      "notes": [
+        {
+          "authorEmail": "salma.kochtben@fixmycity.local",
+          "content": "Motorcyclists are at high risk of falling. Needs urgent cold asphalt patch.",
+          "createdAt": "2026-11-03T10:30:00Z"
+        }
+      ]
+    },
+    {
+      "code": "INC-ROADS-001-R05",
+      "isPrimaryClusterTarget": false,
+      "clusterTargetCode": "INC-ROADS-001",
+      "reportIndexInCluster": 5,
+      "title": "Dangerous street hole damaging vehicles on Bourguiba Ave",
+      "description": "Another citizen report: large asphalt depression and cracked edges right on the right lane near the pharmacy.",
+      "category": "ROADS",
+      "status": "RECEIVED",
+      "priority": "HIGH",
+      "streetAddress": "Avenue Habib Bourguiba, Ariana",
+      "latitude": 36.8668,
+      "longitude": 10.1652,
+      "reporterEmail": "citizen@fixmycity.local",
+      "assignedAgentEmail": null,
+      "assignedTechnicianEmail": null,
+      "createdAt": "2026-11-03T11:45:00Z",
+      "image": {
+        "path": "roads/pexels-introspectivedsgn-5688465.jpg",
+        "fileName": "habib-bourguiba-pothole.jpg",
+        "mimeType": "image/jpeg"
+      },
+      "notes": [
+        {
+          "authorEmail": "citizen@fixmycity.local",
+          "content": "Tire blowout reported by a delivery driver 10 minutes ago.",
+          "createdAt": "2026-11-03T11:45:00Z"
+        }
+      ]
+    },
+    {
+      "code": "INC-ROADS-001-R06",
+      "isPrimaryClusterTarget": false,
+      "clusterTargetCode": "INC-ROADS-001",
+      "reportIndexInCluster": 6,
+      "title": "Major crater on Avenue Habib Bourguiba near pharmacy",
+      "description": "The pothole is getting deeper with every heavy vehicle passing through. Please dispatch road maintenance immediately.",
+      "category": "ROADS",
+      "status": "RECEIVED",
+      "priority": "HIGH",
+      "streetAddress": "Avenue Habib Bourguiba, Ariana",
+      "latitude": 36.8668,
+      "longitude": 10.1652,
+      "reporterEmail": "amine.khelifi@fixmycity.local",
+      "assignedAgentEmail": null,
+      "assignedTechnicianEmail": null,
+      "createdAt": "2026-11-03T13:10:00Z",
+      "image": {
+        "path": "roads/pexels-introspectivedsgn-5688465.jpg",
+        "fileName": "habib-bourguiba-pothole.jpg",
+        "mimeType": "image/jpeg"
+      },
+      "notes": [
+        {
+          "authorEmail": "amine.khelifi@fixmycity.local",
+          "content": "High traffic zone, causing severe traffic jams.",
+          "createdAt": "2026-11-03T13:10:00Z"
+        }
+      ]
+    },
+    {
+      "code": "INC-ROADS-001-R07",
+      "isPrimaryClusterTarget": false,
+      "clusterTargetCode": "INC-ROADS-001",
+      "reportIndexInCluster": 7,
+      "title": "Road hazard: gaping asphalt cavity on Bourguiba Ave",
+      "description": "Sharp asphalt edges inside this pothole are slicing car tires. Located right outside the pharmacy on Avenue Habib Bourguiba.",
+      "category": "ROADS",
+      "status": "RECEIVED",
+      "priority": "HIGH",
+      "streetAddress": "Avenue Habib Bourguiba, Ariana",
+      "latitude": 36.8668,
+      "longitude": 10.1652,
+      "reporterEmail": "yassine.mansouri@fixmycity.local",
+      "assignedAgentEmail": null,
+      "assignedTechnicianEmail": null,
+      "createdAt": "2026-11-03T14:25:00Z",
+      "image": {
+        "path": "roads/pexels-introspectivedsgn-5688465.jpg",
+        "fileName": "habib-bourguiba-pothole.jpg",
+        "mimeType": "image/jpeg"
+      },
+      "notes": [
+        {
+          "authorEmail": "yassine.mansouri@fixmycity.local",
+          "content": "Saw someone put an orange branch in it as an improvised warning sign.",
+          "createdAt": "2026-11-03T14:25:00Z"
+        }
+      ]
+    },
+    {
+      "code": "INC-ROADS-001-R08",
+      "isPrimaryClusterTarget": false,
+      "clusterTargetCode": "INC-ROADS-001",
+      "reportIndexInCluster": 8,
+      "title": "Unrepaired deep pothole on Avenue Habib Bourguiba",
+      "description": "Reporting the same major road hole. It's filled with loose gravel and sharp bitumen chunks thrown onto the sidewalk.",
+      "category": "ROADS",
+      "status": "RECEIVED",
+      "priority": "HIGH",
+      "streetAddress": "Avenue Habib Bourguiba, Ariana",
+      "latitude": 36.8668,
+      "longitude": 10.1652,
+      "reporterEmail": "nour.driss@fixmycity.local",
+      "assignedAgentEmail": null,
+      "assignedTechnicianEmail": null,
+      "createdAt": "2026-11-03T16:00:00Z",
+      "image": {
+        "path": "roads/pexels-introspectivedsgn-5688465.jpg",
+        "fileName": "habib-bourguiba-pothole.jpg",
+        "mimeType": "image/jpeg"
+      },
+      "notes": [
+        {
+          "authorEmail": "nour.driss@fixmycity.local",
+          "content": "Gravel flying at pedestrians when cars drive through it at speed.",
+          "createdAt": "2026-11-03T16:00:00Z"
+        }
+      ]
+    },
+    {
+      "code": "INC-ROADS-001-R09",
+      "isPrimaryClusterTarget": false,
+      "clusterTargetCode": "INC-ROADS-001",
+      "reportIndexInCluster": 9,
+      "title": "Urgent: 9th citizen report on hazardous crater Avenue Habib Bourguiba",
+      "description": "9th report: This massive road crater at Avenue Habib Bourguiba near the pharmacy remains open and dangerous. One more report will trigger municipal auto-escalation.",
+      "category": "ROADS",
+      "status": "RECEIVED",
+      "priority": "HIGH",
+      "streetAddress": "Avenue Habib Bourguiba, Ariana",
+      "latitude": 36.8668,
+      "longitude": 10.1652,
+      "reporterEmail": "khalil.ayari@fixmycity.local",
+      "assignedAgentEmail": null,
+      "assignedTechnicianEmail": null,
+      "createdAt": "2026-11-03T17:15:00Z",
+      "image": {
+        "path": "roads/pexels-introspectivedsgn-5688465.jpg",
+        "fileName": "habib-bourguiba-pothole.jpg",
+        "mimeType": "image/jpeg"
+      },
+      "notes": [
+        {
+          "authorEmail": "khalil.ayari@fixmycity.local",
+          "content": "Still unrepaired by evening rush hour. Extreme risk to evening commute.",
+          "createdAt": "2026-11-03T17:15:00Z"
+        }
+      ]
+    },
+    {
+      "code": "INC-ROADS-002",
+      "title": "Sunken asphalt trench after utility excavation",
+      "description": "A 10-meter trench across the road has settled significantly after water pipe repair, leaving a 10cm drop-off that scrapes car chassis.",
+      "category": "ROADS",
+      "status": "IN_PROGRESS",
+      "priority": "MEDIUM",
+      "streetAddress": "Avenue de la République, Ariana",
+      "latitude": 36.8642,
+      "longitude": 10.1685,
+      "reporterEmail": "mouna.triki@fixmycity.local",
+      "assignedAgentEmail": "s.benromdhane@ariana.gov.example",
+      "assignedTechnicianEmail": "technician@fixmycity.local",
+      "createdAt": "2026-11-05T09:30:00Z",
+      "image": {
+        "path": "roads/pexels-humanistagram-31172239.jpg",
+        "fileName": "republique-sunken-trench.jpg",
+        "mimeType": "image/jpeg"
+      },
+      "notes": [
+        {
+          "authorEmail": "mouna.triki@fixmycity.local",
+          "content": "Trench settled unevenly after rain. Vehicles have to come to a near complete stop.",
+          "createdAt": "2026-11-05T09:30:00Z"
+        },
+        {
+          "authorEmail": "technician@fixmycity.local",
+          "content": "Compaction inspection done. Milling and asphalt resurfacing underway.",
+          "createdAt": "2026-11-06T10:00:00Z"
+        }
+      ]
+    },
+    {
+      "code": "INC-ROADS-003",
+      "title": "Dislodged concrete curb and cracked pavement",
+      "description": "Heavy delivery truck crushed the sidewalk corner curb, pushing heavy concrete blocks into the roadway.",
+      "category": "ROADS",
+      "status": "VALIDATED",
+      "priority": "LOW",
+      "streetAddress": "Avenue Hédi Nouira, Ennasr 2",
+      "latitude": 36.866,
+      "longitude": 10.161,
+      "reporterEmail": "anis.benyoussef@fixmycity.local",
+      "assignedAgentEmail": "s.benromdhane@ariana.gov.example",
+      "assignedTechnicianEmail": null,
+      "createdAt": "2026-11-08T14:15:00Z",
+      "image": {
+        "path": "roads/Gemini_Generated_Image_mv1itkmv1itkmv1i.jpg",
+        "fileName": "hedi-nouira-damaged-curb.jpg",
+        "mimeType": "image/jpeg"
+      },
+      "notes": [
+        {
+          "authorEmail": "anis.benyoussef@fixmycity.local",
+          "content": "Concrete curb blocks dislodged into road lane. Pedestrians must step onto street.",
+          "createdAt": "2026-11-08T14:15:00Z"
+        }
+      ]
+    },
+    {
+      "code": "INC-LIGHT-001",
+      "title": "Street light out on the whole residential block",
+      "description": "Four consecutive streetlight poles are dark along Rue Taieb Mhiri. Unsafe for pedestrians and residents returning home at night.",
+      "category": "LIGHTING",
+      "status": "ASSIGNED",
+      "priority": "MEDIUM",
+      "streetAddress": "Rue Taieb Mhiri, Menzah 6",
+      "latitude": 36.8425,
+      "longitude": 10.1742,
+      "reporterEmail": "salma.kochtben@fixmycity.local",
+      "assignedAgentEmail": "i.chaabane@ariana.gov.example",
+      "assignedTechnicianEmail": "s.mejri@ariana.gov.example",
+      "createdAt": "2026-11-15T19:20:00Z",
+      "image": {
+        "path": "lighting/Gemini_Generated_Image_39svgb39svgb39sv.jpg",
+        "fileName": "taieb-mhiri-blackout.jpg",
+        "mimeType": "image/jpeg"
+      },
+      "notes": [
+        {
+          "authorEmail": "salma.kochtben@fixmycity.local",
+          "content": "Four consecutive lamp posts are dark. Total darkness on sidewalk.",
+          "createdAt": "2026-11-15T19:20:00Z"
+        },
+        {
+          "authorEmail": "i.chaabane@ariana.gov.example",
+          "content": "Circuit breaker trip detected in feeder panel. Dispatched electrician Slim Mejri.",
+          "createdAt": "2026-11-16T08:45:00Z"
+        }
+      ]
+    },
+    {
+      "code": "INC-LIGHT-002",
+      "title": "Damaged streetlight post with exposed high-voltage wiring",
+      "description": "Base maintenance door of metal street pole on Avenue Ibn Khaldoun is broken off, exposing energized cables within reach of children.",
+      "category": "LIGHTING",
+      "status": "IN_PROGRESS",
+      "priority": "CRITICAL",
+      "streetAddress": "Avenue Ibn Khaldoun, Menzah 6",
+      "latitude": 36.844,
+      "longitude": 10.1765,
+      "reporterEmail": "leila.chebbi@fixmycity.local",
+      "assignedAgentEmail": "agent@fixmycity.local",
+      "assignedTechnicianEmail": "s.mejri@ariana.gov.example",
+      "createdAt": "2026-11-16T11:00:00Z",
+      "image": {
+        "path": "lighting/Gemini_Generated_Image_ujy15gujy15gujy1.jpg",
+        "fileName": "ibn-khaldoun-exposed-wires.jpg",
+        "mimeType": "image/jpeg"
+      },
+      "notes": [
+        {
+          "authorEmail": "leila.chebbi@fixmycity.local",
+          "content": "Live electrical wires hanging out of the streetlight post near the primary school.",
+          "createdAt": "2026-11-16T11:00:00Z"
+        },
+        {
+          "authorEmail": "s.mejri@ariana.gov.example",
+          "content": "Emergency isolation complete. Fabricating secure replacement steel hatch.",
+          "createdAt": "2026-11-16T12:30:00Z"
+        }
+      ]
+    },
+    {
+      "code": "INC-LIGHT-003",
+      "title": "Strobe flickering streetlight at busy pedestrian crosswalk",
+      "description": "High-pressure sodium lamp fixture is malfunctioning and flashing rapidly like a strobe, causing severe glare for motorists approaching the zebra crossing.",
+      "category": "LIGHTING",
+      "status": "RECEIVED",
+      "priority": "LOW",
+      "streetAddress": "Avenue de l'Indépendance, Cité Ghazela",
+      "latitude": 36.897,
+      "longitude": 10.1885,
+      "reporterEmail": "imen.benamor@fixmycity.local",
+      "assignedAgentEmail": null,
+      "assignedTechnicianEmail": null,
+      "createdAt": "2026-11-18T18:10:00Z",
+      "image": {
+        "path": "lighting/Gemini_Generated_Image_mzjm9nmzjm9nmzjm.jpg",
+        "fileName": "ghazela-flickering-lamp.jpg",
+        "mimeType": "image/jpeg"
+      },
+      "notes": [
+        {
+          "authorEmail": "imen.benamor@fixmycity.local",
+          "content": "Flashing continuously for two nights. Needs LED upgrade.",
+          "createdAt": "2026-11-18T18:10:00Z"
+        }
+      ]
+    },
+    {
+      "code": "INC-WATER-001",
+      "title": "Water main leak flooding the roadside and entrance ramps",
+      "description": "Water gushing from the pavement since early morning, street is flooded and clean drinking water is being wasted into storm gutters.",
+      "category": "WATER",
+      "status": "IN_PROGRESS",
+      "priority": "CRITICAL",
+      "streetAddress": "Avenue de l'Environnement, Ennasr 2",
+      "latitude": 36.8655,
+      "longitude": 10.1588,
+      "reporterEmail": "sarra.mejaouel@fixmycity.local",
+      "assignedAgentEmail": "s.benromdhane@ariana.gov.example",
+      "assignedTechnicianEmail": "w.trabelsi@ariana.gov.example",
+      "createdAt": "2026-11-17T06:55:00Z",
+      "image": {
+        "path": "water/Gemini_Generated_Image_t2i2fyt2i2fyt2i2.jpg",
+        "fileName": "ennasr-water-main-burst.jpg",
+        "mimeType": "image/jpeg"
+      },
+      "notes": [
+        {
+          "authorEmail": "sarra.mejaouel@fixmycity.local",
+          "content": "Water gushing from the pavement since early morning, street is flooded.",
+          "createdAt": "2026-11-17T06:55:00Z"
+        },
+        {
+          "authorEmail": "s.benromdhane@ariana.gov.example",
+          "content": "Suspected burst service pipe. Escalated as critical, SONEDE alerted.",
+          "createdAt": "2026-11-17T07:20:00Z"
+        },
+        {
+          "authorEmail": "w.trabelsi@ariana.gov.example",
+          "content": "Crew dispatched. Water valve isolated. Excavation completed, 2-inch PVC junction replaced.",
+          "createdAt": "2026-11-17T08:30:00Z"
+        }
+      ]
+    },
+    {
+      "code": "INC-WATER-002",
+      "title": "Blocked storm drain causing massive water pooling after rain",
+      "description": "Drain clogged with debris, large puddle blocks the lane after rain on Route de la Soukra. Pedestrians cannot cross.",
+      "category": "WATER",
+      "status": "VALIDATED",
+      "priority": "HIGH",
+      "streetAddress": "Route de la Soukra, La Soukra",
+      "latitude": 36.8712,
+      "longitude": 10.2395,
+      "reporterEmail": "amine.khelifi@fixmycity.local",
+      "assignedAgentEmail": "s.benromdhane@ariana.gov.example",
+      "assignedTechnicianEmail": null,
+      "createdAt": "2026-11-18T16:30:00Z",
+      "image": {
+        "path": "water/Gemini_Generated_Image_hbyrduhbyrduhbyr.jpg",
+        "fileName": "soukra-blocked-storm-drain.jpg",
+        "mimeType": "image/jpeg"
+      },
+      "notes": [
+        {
+          "authorEmail": "amine.khelifi@fixmycity.local",
+          "content": "Drain clogged with leaves and plastic bottles. Water accumulated 20cm deep.",
+          "createdAt": "2026-11-18T16:30:00Z"
+        },
+        {
+          "authorEmail": "s.benromdhane@ariana.gov.example",
+          "content": "Hydro-jet cleaning truck requested from ONAS sanitation depot.",
+          "createdAt": "2026-11-18T17:45:00Z"
+        }
+      ]
+    },
+    {
+      "code": "INC-WATER-003",
+      "title": "Damaged fire hydrant leaking onto public walkway",
+      "description": "Flange gasket on municipal fire hydrant failed; high pressure water jet spraying across pedestrian sidewalk.",
+      "category": "WATER",
+      "status": "RESOLVED",
+      "priority": "MEDIUM",
+      "streetAddress": "Avenue Habib Bourguiba, Ariana",
+      "latitude": 36.868,
+      "longitude": 10.163,
+      "reporterEmail": "yassine.mansouri@fixmycity.local",
+      "assignedAgentEmail": "agent@fixmycity.local",
+      "assignedTechnicianEmail": "w.trabelsi@ariana.gov.example",
+      "createdAt": "2026-11-12T10:15:00Z",
+      "image": {
+        "path": "water/Gemini_Generated_Image_vmlt62vmlt62vmlt.jpg",
+        "fileName": "bourguiba-hydrant-leak.jpg",
+        "mimeType": "image/jpeg"
+      },
+      "notes": [
+        {
+          "authorEmail": "yassine.mansouri@fixmycity.local",
+          "content": "Hydrant spraying water into pedestrian storefronts.",
+          "createdAt": "2026-11-12T10:15:00Z"
+        },
+        {
+          "authorEmail": "w.trabelsi@ariana.gov.example",
+          "content": "Shut off gate valve, replaced high-pressure rubber seal ring and pressure tested.",
+          "createdAt": "2026-11-12T14:00:00Z"
+        }
+      ]
+    },
+    {
+      "code": "INC-WASTE-001",
+      "title": "Overflowing waste containers with foul odor near commercial center",
+      "description": "Containers overflowing for 3 days. Household waste scattered on sidewalk attracting stray animals and blocking shoppers.",
+      "category": "WASTE",
+      "status": "RESOLVED",
+      "priority": "MEDIUM",
+      "streetAddress": "Avenue de l'Indépendance, Cité Ghazela",
+      "latitude": 36.8955,
+      "longitude": 10.1912,
+      "reporterEmail": "imen.benamor@fixmycity.local",
+      "assignedAgentEmail": "k.jlassi@ariana.gov.example",
+      "assignedTechnicianEmail": "m.haddad@ariana.gov.example",
+      "createdAt": "2026-11-10T08:10:00Z",
+      "image": {
+        "path": "waste/Gemini_Generated_Image_5y0tv35y0tv35y0t.jpg",
+        "fileName": "ghazela-overflowing-bins.jpg",
+        "mimeType": "image/jpeg"
+      },
+      "notes": [
+        {
+          "authorEmail": "imen.benamor@fixmycity.local",
+          "content": "Containers overflowing for 3 days. Waste scattered on the sidewalk.",
+          "createdAt": "2026-11-10T08:10:00Z"
+        },
+        {
+          "authorEmail": "k.jlassi@ariana.gov.example",
+          "content": "Special compactor truck dispatched for immediate clearance.",
+          "createdAt": "2026-11-10T10:00:00Z"
+        },
+        {
+          "authorEmail": "m.haddad@ariana.gov.example",
+          "content": "Containers emptied and area disinfected. Two damaged 660L bins replaced.",
+          "createdAt": "2026-11-11T06:45:00Z"
+        }
+      ]
+    },
+    {
+      "code": "INC-WASTE-002",
+      "title": "Illegal dumping of construction demolition debris on public road edge",
+      "description": "Truck dumped broken concrete tiles, drywall plaster, and rubble directly onto the road shoulder and curb.",
+      "category": "WASTE",
+      "status": "ASSIGNED",
+      "priority": "HIGH",
+      "streetAddress": "Route de la Soukra, La Soukra",
+      "latitude": 36.8725,
+      "longitude": 10.238,
+      "reporterEmail": "nour.driss@fixmycity.local",
+      "assignedAgentEmail": "k.jlassi@ariana.gov.example",
+      "assignedTechnicianEmail": "m.haddad@ariana.gov.example",
+      "createdAt": "2026-11-14T15:20:00Z",
+      "image": {
+        "path": "waste/Gemini_Generated_Image_oin0otoin0otoin0.jpg",
+        "fileName": "soukra-construction-dumping.jpg",
+        "mimeType": "image/jpeg"
+      },
+      "notes": [
+        {
+          "authorEmail": "nour.driss@fixmycity.local",
+          "content": "Piles of sharp construction rubble left overnight.",
+          "createdAt": "2026-11-14T15:20:00Z"
+        },
+        {
+          "authorEmail": "m.haddad@ariana.gov.example",
+          "content": "Front loader and dump truck scheduled for removal tomorrow morning.",
+          "createdAt": "2026-11-15T09:00:00Z"
+        }
+      ]
+    },
+    {
+      "code": "INC-WASTE-003",
+      "title": "Overturned municipal garbage bins spilling rubbish into alley",
+      "description": "Vandalism overnight: three large green waste bins knocked over, trash strewn across the residential street.",
+      "category": "WASTE",
+      "status": "VALIDATED",
+      "priority": "LOW",
+      "streetAddress": "Rue Taieb Mhiri, Menzah 6",
+      "latitude": 36.843,
+      "longitude": 10.1735,
+      "reporterEmail": "salma.kochtben@fixmycity.local",
+      "assignedAgentEmail": "k.jlassi@ariana.gov.example",
+      "assignedTechnicianEmail": null,
+      "createdAt": "2026-11-17T07:15:00Z",
+      "image": {
+        "path": "waste/Gemini_Generated_Image_f9fjm7f9fjm7f9fj.jpg",
+        "fileName": "menzah6-overturned-bins.jpg",
+        "mimeType": "image/jpeg"
+      },
+      "notes": [
+        {
+          "authorEmail": "salma.kochtben@fixmycity.local",
+          "content": "Bins knocked down into the roadway, obstructing driveway exits.",
+          "createdAt": "2026-11-17T07:15:00Z"
+        }
+      ]
+    },
+    {
+      "code": "INC-GREEN-001",
+      "title": "Fallen eucalyptus tree branch blocking vehicular traffic",
+      "description": "High winds snapped a large heavy tree branch that fell across the right traffic lane of Avenue Ibn Khaldoun, blocking cars.",
+      "category": "GREENERY",
+      "status": "IN_PROGRESS",
+      "priority": "HIGH",
+      "streetAddress": "Avenue Ibn Khaldoun, Menzah 6",
+      "latitude": 36.845,
+      "longitude": 10.178,
+      "reporterEmail": "khalil.ayari@fixmycity.local",
+      "assignedAgentEmail": "s.benromdhane@ariana.gov.example",
+      "assignedTechnicianEmail": "technician@fixmycity.local",
+      "createdAt": "2026-11-17T14:30:00Z",
+      "image": {
+        "path": "greenery/Gemini_Generated_Image_sla1a6sla1a6sla1.jpg",
+        "fileName": "ibn-khaldoun-fallen-branch.jpg",
+        "mimeType": "image/jpeg"
+      },
+      "notes": [
+        {
+          "authorEmail": "khalil.ayari@fixmycity.local",
+          "content": "Branch is approx 4 meters long, completely blocking one lane.",
+          "createdAt": "2026-11-17T14:30:00Z"
+        },
+        {
+          "authorEmail": "technician@fixmycity.local",
+          "content": "Parks chainsaw crew on site cutting branch into transportable logs.",
+          "createdAt": "2026-11-17T15:45:00Z"
+        }
+      ]
+    },
+    {
+      "code": "INC-GREEN-002",
+      "title": "Overgrown hedge obstructing pedestrian visibility at intersection",
+      "description": "Unmaintained sidewalk hedge and acacia bushes block sightlines for motorists turning onto Avenue de la République.",
+      "category": "GREENERY",
+      "status": "RECEIVED",
+      "priority": "MEDIUM",
+      "streetAddress": "Avenue de la République, Ariana",
+      "latitude": 36.8635,
+      "longitude": 10.169,
+      "reporterEmail": "anis.benyoussef@fixmycity.local",
+      "assignedAgentEmail": null,
+      "assignedTechnicianEmail": null,
+      "createdAt": "2026-11-18T10:00:00Z",
+      "image": {
+        "path": "greenery/Gemini_Generated_Image_2bddhl2bddhl2bdd.jpg",
+        "fileName": "republique-overgrown-hedge.jpg",
+        "mimeType": "image/jpeg"
+      },
+      "notes": [
+        {
+          "authorEmail": "anis.benyoussef@fixmycity.local",
+          "content": "Drivers cannot see pedestrians crossing because of overgrown bushes.",
+          "createdAt": "2026-11-18T10:00:00Z"
+        }
+      ]
+    },
+    {
+      "code": "INC-GREEN-003",
+      "title": "Leaning ornamental palm tree threatening power distribution lines",
+      "description": "Roots undermined by erosion; 6-meter palm tree is leaning at 45 degrees directly towards overhead electrical cables.",
+      "category": "GREENERY",
+      "status": "VALIDATED",
+      "priority": "HIGH",
+      "streetAddress": "Avenue Hédi Nouira, Ennasr 2",
+      "latitude": 36.8645,
+      "longitude": 10.162,
+      "reporterEmail": "sarra.mejaouel@fixmycity.local",
+      "assignedAgentEmail": "s.benromdhane@ariana.gov.example",
+      "assignedTechnicianEmail": null,
+      "createdAt": "2026-11-18T12:00:00Z",
+      "image": {
+        "path": "greenery/Gemini_Generated_Image_entvj3entvj3entv.jpg",
+        "fileName": "ennasr-leaning-palm.jpg",
+        "mimeType": "image/jpeg"
+      },
+      "notes": [
+        {
+          "authorEmail": "sarra.mejaouel@fixmycity.local",
+          "content": "Tree roots lifting pavers, tree is resting near wire bundle.",
+          "createdAt": "2026-11-18T12:00:00Z"
+        },
+        {
+          "authorEmail": "s.benromdhane@ariana.gov.example",
+          "content": "Inspection confirmed dangerous angle. Coordinating crane and STEG safety team.",
+          "createdAt": "2026-11-18T13:30:00Z"
+        }
+      ]
+    },
+    {
+      "code": "INC-OTHER-001",
+      "title": "Shattered tempered glass and damaged bench at bus stop shelter",
+      "description": "Vandals smashed the glass panel of the public bus shelter, spreading sharp fragments across the waiting area.",
+      "category": "OTHER",
+      "status": "VALIDATED",
+      "priority": "MEDIUM",
+      "streetAddress": "Avenue Hédi Nouira, Ennasr 2",
+      "latitude": 36.8672,
+      "longitude": 10.1615,
+      "reporterEmail": "medali.bouzidi@fixmycity.local",
+      "assignedAgentEmail": "agent@fixmycity.local",
+      "assignedTechnicianEmail": null,
+      "createdAt": "2026-11-16T17:40:00Z",
+      "image": {
+        "path": "other/Gemini_Generated_Image_dj04abdj04abdj04.jpg",
+        "fileName": "ennasr-bus-shelter-glass.jpg",
+        "mimeType": "image/jpeg"
+      },
+      "notes": [
+        {
+          "authorEmail": "medali.bouzidi@fixmycity.local",
+          "content": "Tempered glass shattered all over sidewalk. Commuters have no place to sit.",
+          "createdAt": "2026-11-16T17:40:00Z"
+        }
+      ]
+    },
+    {
+      "code": "INC-OTHER-002",
+      "title": "Missing cast-iron manhole cover creating open roadway hazard",
+      "description": "A 70cm diameter sewer manhole cover is missing on the traffic lane. Improvised wooden pallet placed as temporary warning.",
+      "category": "OTHER",
+      "status": "ASSIGNED",
+      "priority": "CRITICAL",
+      "streetAddress": "Avenue de l'Environnement, Ennasr 2",
+      "latitude": 36.8648,
+      "longitude": 10.1595,
+      "reporterEmail": "amine.khelifi@fixmycity.local",
+      "assignedAgentEmail": "s.benromdhane@ariana.gov.example",
+      "assignedTechnicianEmail": "technician@fixmycity.local",
+      "createdAt": "2026-11-18T07:20:00Z",
+      "image": {
+        "path": "other/Gemini_Generated_Image_67c3xm67c3xm67c3.jpg",
+        "fileName": "ennasr-missing-manhole.jpg",
+        "mimeType": "image/jpeg"
+      },
+      "notes": [
+        {
+          "authorEmail": "amine.khelifi@fixmycity.local",
+          "content": "Extremely dangerous pit on active road. A car could easily lose a wheel.",
+          "createdAt": "2026-11-18T07:20:00Z"
+        },
+        {
+          "authorEmail": "s.benromdhane@ariana.gov.example",
+          "content": "Emergency traffic cones deployed. Heavy-duty ductile iron replacement cover dispatched.",
+          "createdAt": "2026-11-18T08:00:00Z"
+        }
+      ]
+    },
+    {
+      "code": "INC-OTHER-003",
+      "title": "Bent and twisted regulatory traffic sign after vehicle collision",
+      "description": "Stop sign and directional arrow post knocked down and twisted at 45 degrees, confusing incoming traffic at blind crossroad.",
+      "category": "OTHER",
+      "status": "RESOLVED",
+      "priority": "MEDIUM",
+      "streetAddress": "Route de la Soukra, La Soukra",
+      "latitude": 36.873,
+      "longitude": 10.237,
+      "reporterEmail": "leila.chebbi@fixmycity.local",
+      "assignedAgentEmail": "agent@fixmycity.local",
+      "assignedTechnicianEmail": "technician@fixmycity.local",
+      "createdAt": "2026-11-11T13:00:00Z",
+      "image": {
+        "path": "other/Gemini_Generated_Image_qr8x8fqr8x8fqr8x.jpg",
+        "fileName": "soukra-bent-traffic-sign.jpg",
+        "mimeType": "image/jpeg"
+      },
+      "notes": [
+        {
+          "authorEmail": "leila.chebbi@fixmycity.local",
+          "content": "Sign post bent into roadway after nighttime accident.",
+          "createdAt": "2026-11-11T13:00:00Z"
+        },
+        {
+          "authorEmail": "technician@fixmycity.local",
+          "content": "Post straightened, base anchor re-bolted into concrete footing, reflective sign face cleaned.",
+          "createdAt": "2026-11-12T11:00:00Z"
+        }
+      ]
+    }
+  ]
+}

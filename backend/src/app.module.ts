@@ -11,6 +11,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { MediaModule } from './modules/media/media.module';
 import { IncidentsModule } from './modules/incidents/incidents.module';
 import { HealthModule } from './modules/health/health.module';
+import { SetupModule } from './modules/setup/setup.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { HealthModule } from './modules/health/health.module';
     MediaModule,
     IncidentsModule,
     HealthModule,
+    SetupModule,
   ],
   providers: [
     {

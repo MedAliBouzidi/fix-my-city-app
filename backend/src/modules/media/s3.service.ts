@@ -92,4 +92,24 @@ export class S3Service {
       return false;
     }
   }
+
+  async uploadObject(
+    s3Key: string,
+    body: Buffer,
+    contentType: string,
+  ): Promise<boolean> {
+    try {
+      const command = new PutObjectCommand({
+        Bucket: this.bucketName,
+        Key: s3Key,
+        Body: body,
+        ContentType: contentType,
+      });
+      await this.s3Client.send(command);
+      return true;
+    } catch (error) {
+      this.logger.warn(`Failed to upload object ${s3Key} to S3: ${error.message}`);
+      return false;
+    }
+  }
 }
